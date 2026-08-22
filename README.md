@@ -11,7 +11,7 @@ A powerful, fully client-side retirement planning tool. Model your entire financ
 Once you enable GitHub Pages (see below), the planner will be available at:
 
 ```
-https://YOUR_USERNAME.github.io/opennest-horizon-planner/
+https://kingfish600.github.io/opennest-horizon-planner/
 ```
 
 Or simply open `index.html` in any modern browser.
