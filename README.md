@@ -99,6 +99,12 @@ Your inputs are automatically saved in the browser’s local storage.
 
 ---
 
+## Acknowledgments & Inspirations
+* Longevity & Mortality Visualizer inspired by Engaging Data's classic "Rich, Broke or Dead" model.
+* Safe withdrawal rate and guardrail concepts built on Bengen, Guyton-Klinger, and Trinity study research.
+
+---
+
 ## Deploying on GitHub Pages
 
 1. Create a new public repository on GitHub.
