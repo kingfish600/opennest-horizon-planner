@@ -13,9 +13,17 @@
   ::-webkit-scrollbar-track { background: #0f172a; }
   ::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
   ::-webkit-scrollbar-thumb:hover { background: #475569; }
-  input[type=range] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 9999px; background: #334155; outline: none; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #22d3ee; cursor: pointer; box-shadow: 0 0 0 3px rgba(34,211,238,.25); }
-  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: #22d3ee; cursor: pointer; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 9999px; background: #334155; outline: none; cursor: pointer; }
+  /* enlarged 20px thumb with hover grow for easy touch/mouse targeting */
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #22d3ee; cursor: pointer; box-shadow: 0 0 0 3px rgba(34,211,238,.25); transition: transform .12s ease, box-shadow .12s ease; }
+  input[type=range]:hover::-webkit-slider-thumb, input[type=range]:focus::-webkit-slider-thumb { transform: scale(1.18); box-shadow: 0 0 0 5px rgba(34,211,238,.3); }
+  input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border: none; border-radius: 50%; background: #22d3ee; cursor: pointer; transition: transform .12s ease; }
+  input[type=range]:hover::-moz-range-thumb { transform: scale(1.18); }
+  /* paired editable percentage readout injected next to fraction-scaled sliders */
+  .pct-pair { width: 5.25rem; flex: 0 0 auto; margin-top: .25rem; padding: .3rem .45rem; font-size: .78rem;
+    background: #0b1220; border: 1px solid #2b3a50; color: #67e8f9; border-radius: .5rem; text-align: right; }
+  .pct-pair:focus { outline: none; border-color: #22d3ee; box-shadow: 0 0 0 3px rgba(34,211,238,.15); }
+  .pct-pair::after { content: "%"; }
   .tab-btn { transition: all .15s ease; }
   .tab-btn.active { background: rgba(34,211,238,.12); border-color: rgba(34,211,238,.5); color: #67e8f9; box-shadow: 0 0 18px -6px rgba(34,211,238,.4); }
   /* ---- charts / grids / wide tables never clip horizontally on small screens ---- */
@@ -123,7 +131,7 @@
       <button data-tab="roth"       class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300">🔄 <span class="font-medium">Roth Conversion</span></button>
       <button data-tab="scenarios"  class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300">⚖️ <span class="font-medium">Scenario Compare</span></button>
       <button data-tab="coast"      class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300" id="navCoast" title="Coast FI & FIRE Analytics (SharpeMONEY Coast FI Framework v3)">🔥 <span class="font-medium">Coast FI / FIRE</span></button>
-      <button data-tab="rdb"        class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300" id="navRdb" title="Rich, Broke or Dead? — Post-Retirement Longevity &amp; Mortality visualizer (Engaging Data style)">💀 <span class="font-medium">Rich, Broke or Dead?</span></button>
+      <button data-tab="rdb"        class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300" id="navRdb" title="Longevity Index — Post-Retirement Longevity &amp; Mortality visualizer">📊 <span class="font-medium">Longevity Index</span></button>
       <button data-tab="ledger"     class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300">📒 <span class="font-medium">Year-by-Year Ledger</span></button>
       <button data-tab="data"       class="tab-btn text-left w-full px-3 py-2 rounded-lg border border-transparent text-sm text-slate-300">💾 <span class="font-medium">Data &amp; Settings</span></button>
     </nav>
@@ -164,7 +172,7 @@
           <span class="text-base">💀</span>
           <span id="rdbDashMsg" class="text-slate-300">—</span>
           <span class="ml-auto flex items-center gap-3">
-            <span class="text-[11px] text-slate-500" id="rdbDashMeta">Rich, Broke or Dead? module</span>
+            <span class="text-[11px] text-slate-500" id="rdbDashMeta">Longevity Index module</span>
             <button id="btnRdbGo" class="ctl text-xs px-3 py-1 font-semibold bg-cyan-500/10 border-cyan-500/30 text-cyan-300">Open Longevity →</button>
           </span>
         </div>
@@ -318,13 +326,14 @@
           </div>
           <h3 class="text-sm font-semibold text-slate-300 mt-4 mb-2">Growth Assumptions</h3>
           <div class="grid grid-cols-3 gap-3">
-            <div><label class="text-xs text-slate-400">Taxable return</label><input type="number" step="0.005" data-f="retTaxable" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Pre-tax return</label><input type="number" step="0.005" data-f="retPretax" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Roth return</label><input type="number" step="0.005" data-f="retRoth" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">HSA return</label><input type="number" step="0.005" data-f="retHSA" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Cash return</label><input type="number" step="0.005" data-f="retCash" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Inflation</label><input type="number" step="0.005" data-f="inflation" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Dividend yield (e.g. 0.011 for 1.1%)</label><input type="number" min="0" max="0.15" step="0.001" data-f="divYield" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Taxable return % <span class="text-slate-500">(type 7 = 7%)</span></label><input type="number" step="0.25" data-f="retTaxable" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Pre-tax return % <span class="text-slate-500">(type 6 = 6%)</span></label><input type="number" step="0.25" data-f="retPretax" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Roth return % <span class="text-slate-500">(type 7 = 7%)</span></label><input type="number" step="0.25" data-f="retRoth" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">HSA return % <span class="text-slate-500">(type 6 = 6%)</span></label><input type="number" step="0.25" data-f="retHSA" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Cash return % <span class="text-slate-500">(type 4 = 4%)</span></label><input type="number" step="0.25" data-f="retCash" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Inflation % <span class="text-slate-500">(type 2.5 = 2.5%)</span></label><input type="number" step="0.25" data-f="inflation" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Dividend yield % <span class="text-slate-500">(type 1.1 = 1.1%)</span></label><input type="number" min="0" max="15" step="0.05" data-f="divYield" class="num-input mt-1">
+            <div id="divYieldNote" class="text-[10px] text-cyan-300/80 mt-1 leading-snug"></div></div>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-800/60">
             <div class="flex flex-wrap items-center gap-3 mb-2">
@@ -375,9 +384,9 @@
           <h3 class="text-sm font-semibold text-slate-300 mb-3">Annual Cash Flows</h3>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="text-xs text-slate-400">Salary (pre-retirement)</label><input type="number" data-f="salary" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Salary COLA / raise</label><input type="number" step="0.005" data-f="salaryCOLA" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Salary COLA / raise</label><input type="number" step="0.1" data-f="salaryCOLA" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Rental / passive income</label><input type="number" data-f="rental" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Spending escalator</label><input type="number" step="0.005" data-f="spendingEsc" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Spending escalator</label><input type="number" step="0.1" data-f="spendingEsc" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Essential spending</label><input type="number" data-f="essential" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Discretionary spending</label><input type="number" data-f="discretionary" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Annual savings → pre-tax (until retirement)</label><input type="number" data-f="savings" class="num-input mt-1"></div>
@@ -386,7 +395,7 @@
           <div class="mt-4 grid grid-cols-3 gap-3">
             <div><label class="text-xs text-slate-400">Pension start (age)</label><input type="number" data-f="pensionAge" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Pension $ / yr</label><input type="number" data-f="pensionStart" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Pension COLA</label><input type="number" step="0.005" data-f="pensionCOLA" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Pension COLA % <span class="text-slate-500">(type 1 = 1%)</span></label><input type="number" step="0.1" data-f="pensionCOLA" class="num-input mt-1"></div>
           </div>
           <div class="mt-3 pt-3 border-t border-slate-800/60">
             <div class="flex flex-wrap items-center gap-3 mb-2">
@@ -438,7 +447,7 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div><label class="text-xs text-slate-400">Balance today ($)</label><input type="number" id="mtgBalance" min="0" step="5000" class="num-input mt-1"></div>
-              <div><label class="text-xs text-slate-400">Interest rate (e.g. 0.055)</label><input type="number" id="mtgRate" min="0" max="0.25" step="0.005" class="num-input mt-1"></div>
+              <div><label class="text-xs text-slate-400">Interest rate % <span class="text-slate-500">(type 5.5 = 5.5%)</span></label><input type="number" id="mtgRate" min="0" max="25" step="0.05" class="num-input mt-1"></div>
               <div><label class="text-xs text-slate-400">Monthly payment ($)</label><input type="number" id="mtgPayment" min="0" step="50" class="num-input mt-1"></div>
               <div><label class="text-xs text-slate-400">Years remaining</label><input type="number" id="mtgYearsLeft" min="1" max="50" step="1" class="num-input mt-1"></div>
             </div>
@@ -459,7 +468,7 @@
             <div class="grid grid-cols-2 gap-3">
               <div><label class="text-xs text-slate-400">Home value ($)</label><input type="number" id="hecmHomeValue" min="0" step="10000" class="num-input mt-1"></div>
               <div><label class="text-xs text-slate-400">Borrowing limit % of value</label><input type="number" id="hecmLimitPct" min="0" max="1" step="0.05" class="num-input mt-1"></div>
-              <div><label class="text-xs text-slate-400">LOC compounding rate (e.g. 0.06)</label><input type="number" id="hecmGrowthRate" min="0" max="0.15" step="0.005" class="num-input mt-1"></div>
+              <div><label class="text-xs text-slate-400">LOC compounding rate % <span class="text-slate-500">(type 6 = 6%)</span></label><input type="number" id="hecmGrowthRate" min="0" max="15" step="0.25" class="num-input mt-1"></div>
               <div><label class="text-xs text-slate-400">LOC available from (age)</label><input type="number" id="hecmAge" min="55" max="90" step="1" class="num-input mt-1"></div>
             </div>
             <p class="text-[10px] text-slate-500 mt-2">Standby reverse mortgage: the untapped credit line compounds every year, and in bear-market years (negative equity returns) portfolio withdrawals are intercepted and funded tax-free from the LOC instead — the portfolio keeps its compounding base and no shares are sold at the bottom.</p>
@@ -489,7 +498,7 @@
             </div>
             <div class="grid grid-cols-3 gap-3">
               <div><label class="text-xs text-slate-400">Start age (&lt;59½)</label><input type="number" id="seppStartAge" min="40" max="59" step="1" class="num-input mt-1"></div>
-              <div><label class="text-xs text-slate-400">IRS reasonable rate (e.g. 0.05)</label><input type="number" id="seppRate" min="0.005" max="0.12" step="0.005" class="num-input mt-1"></div>
+              <div><label class="text-xs text-slate-400">IRS reasonable rate % <span class="text-slate-500">(type 5 = 5%)</span></label><input type="number" id="seppRate" min="0.5" max="12" step="0.25" class="num-input mt-1"></div>
               <div><label class="text-xs text-slate-400">Single life expectancy to age</label><input type="number" id="seppLifeExp" min="60" max="110" step="1" class="num-input mt-1"></div>
             </div>
             <p class="text-[10px] text-slate-500 mt-2">Amortization method: balance ÷ annuity factor over your life expectancy at the IRS reasonable rate — a fixed annual pre-tax draw, penalty-free, locked for the longer of 5 years or until age 59½. The exact safe-harbor amount overrides the standard waterfall for those years.</p>
@@ -512,7 +521,7 @@
           <div class="mt-4 grid grid-cols-3 gap-3">
             <div><label class="text-xs text-slate-400">Social Security FRA benefit (mo.)</label><input type="number" data-f="ssFRA" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Claiming age</label><input type="number" data-f="ssClaimAge" class="num-input mt-1"></div>
-            <div><label class="text-xs text-slate-400">Healthcare inflation</label><input type="number" step="0.005" data-f="medInflation" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Healthcare inflation</label><input type="number" step="0.1" data-f="medInflation" class="num-input mt-1"></div>
           </div>
           <div class="mt-4 grid grid-cols-3 gap-3">
             <div><label class="text-xs text-slate-400">Essential medical $ (at 65+)</label><input type="number" data-f="medEssential" class="num-input mt-1"></div>
@@ -1005,10 +1014,10 @@
       </div>
     </section>
 
-    <!-- ========== TAB: RICH, BROKE OR DEAD (Post-Retirement Longevity) ========== -->
+    <!-- ========== TAB: LONGEVITY INDEX (Post-Retirement Longevity) ========== -->
     <section id="tab-rdb" class="tab-panel hidden space-y-5">
       <div class="flex flex-wrap items-center gap-3">
-        <h2 class="text-lg font-bold tracking-tight">💀 Rich, Broke or Dead? <span class="text-slate-500 font-normal">Post-Retirement Longevity &amp; FIRE Visualizer</span></h2>
+        <h2 class="text-lg font-bold tracking-tight">📊 Longevity Index <span class="text-slate-500 font-normal">Post-Retirement Longevity &amp; FIRE Visualizer</span></h2>
         <span class="text-xs text-slate-500">Modeled after Engaging Data's <em>Will My Money Last?</em> — live-synced with <span id="rdbPlanLabel" class="text-cyan-400">Plan A</span> (retirement balances, blended returns, dividends, pension, Social Security, spending &amp; inflation)</span>
       </div>
 
@@ -1131,11 +1140,12 @@
             <h3 class="text-sm font-semibold text-slate-300">Interactive Bucket Status</h3>
             <div class="flex items-center gap-2 text-xs text-slate-400">
               <span>Age</span>
-              <input type="range" id="bktAge" class="w-44" min="65" max="95" value="70">
+              <input type="range" id="bktAge" class="w-44" min="40" max="95" value="70">
               <span id="bktAgeVal" class="text-cyan-400 font-semibold w-12">70</span>
+              <span id="bktSnapNote" class="text-[10px] text-slate-500"></span>
             </div>
           </div>
-          <p class="text-xs text-slate-500 mb-3">Drag the age slider to inspect any retirement year — balances vs. inflation-adjusted refill targets, and which accounts back each bucket.</p>
+          <p class="text-xs text-slate-500 mb-3">Drag the age slider to inspect any year from 40 on — pre-retirement ages snap to your first retirement year — balances vs. inflation-adjusted refill targets, and which accounts back each bucket.</p>
           <div class="grid md:grid-cols-3 gap-3" id="bktDiagram"></div>
           <div class="mt-4">
             <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>Asset allocation at selected age</span><span id="bktAllocLabel"></span></div>
@@ -1179,7 +1189,7 @@
             </div>
             <div><label class="text-xs text-slate-400">Income start age</label><input type="number" id="annStartAge" class="num-input mt-1" min="50" max="90" step="1"></div>
             <div><label class="text-xs text-slate-400">Monthly payout ($)</label><input type="number" id="annMonthly" class="num-input mt-1" min="0" step="50"></div>
-            <div><label class="text-xs text-slate-400">Annual COLA % <span class="text-slate-500">(e.g. 0.02 = 2%)</span></label><input type="number" id="annCOLA" class="num-input mt-1" min="0" max="0.06" step="0.005"></div>
+            <div><label class="text-xs text-slate-400">Annual COLA % <span class="text-slate-500">(type 2 = 2%)</span></label><input type="number" id="annCOLA" class="num-input mt-1" min="0" max="6" step="0.1"></div>
             <div class="flex items-end"><p class="text-[10px] text-slate-600">SPIA pays immediately from the start age; use a later start age to model a DIA / QLAC-style deferral.</p></div>
           </div>
           <div id="annSummary" class="mt-4 rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs space-y-1.5"></div>
@@ -1289,7 +1299,7 @@
             </optgroup>
           </select>
           <div id="stCustomBody" class="hidden grid grid-cols-2 gap-3 mt-3">
-            <div><label class="text-xs text-slate-400">Flat rate %</label><input type="number" id="stRate" class="num-input mt-1" min="0" max="0.15" step="0.005"></div>
+            <div><label class="text-xs text-slate-400">Flat rate % <span class="text-slate-500">(type 4 = 4%)</span></label><input type="number" id="stRate" class="num-input mt-1" min="0" max="15" step="0.1"></div>
             <div><label class="text-xs text-slate-400">State deduction $</label><input type="number" id="stDeduction" class="num-input mt-1" min="0" step="500"></div>
           </div>
           <label class="flex items-center gap-2 text-xs text-slate-400 mt-4 mb-2">
@@ -1363,11 +1373,11 @@
       <div class="stat-card rounded-xl p-4">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex-1 min-w-[220px]">
-            <div class="text-sm font-semibold text-slate-200">💀 Rich, Broke or Dead? (Mortality &amp; Longevity) Module</div>
-            <p class="text-xs text-slate-500 mt-0.5">When enabled, the <em>Rich, Broke or Dead?</em> tab appears in the navigation and a live longevity-status widget shows on the Dashboard. The visualizer runs 500 stochastic post-retirement paths (blended return &amp; volatility, dividends, pension, Social Security, medical, spending, RMDs — all synced from your active plan) against SSA period-life-table mortality (male / female / unisex), and stacks the joint outcome of <em>Dead · Broke · Surviving · Growing · Rich</em> to 100% at every age, with optional dynamic spending flexibility.</p>
+            <div class="text-sm font-semibold text-slate-200">📊 Longevity Index (Mortality &amp; Longevity) Module</div>
+            <p class="text-xs text-slate-500 mt-0.5">When enabled, the <em>Longevity Index</em> tab appears in the navigation and a live longevity-status widget shows on the Dashboard. The visualizer runs 500 stochastic post-retirement paths (blended return &amp; volatility, dividends, pension, Social Security, medical, spending, RMDs — all synced from your active plan) against SSA period-life-table mortality (male / female / unisex), and stacks the joint outcome of <em>Dead · Broke · Surviving · Growing · Rich</em> to 100% at every age, with optional dynamic spending flexibility.</p>
           </div>
           <label class="flex items-center gap-2 text-xs text-slate-400 ml-auto">
-            <span class="whitespace-nowrap">Enable Rich, Broke or Dead (Mortality &amp; Longevity) Module</span>
+            <span class="whitespace-nowrap">Enable Longevity Index (Mortality &amp; Longevity) Module</span>
             <span class="relative inline-block"><input type="checkbox" id="rdbEnabled" class="peer sr-only" checked><span class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-cyan-500 relative block before:content-[''] before:absolute before:top-0.5 before:left-0.5 before:w-4 before:h-4 before:rounded-full before:bg-slate-300 peer-checked:before:translate-x-5 peer-checked:before:bg-white before:transition-transform duration-150"></span></span>
           </label>
         </div>
@@ -1668,7 +1678,7 @@ function dsComputeAt(plan, age) {
                         anchors for intermediate single-year ages; clamped to the table
                         range (50–100) and to [0.0001, 1], so the result is always finite.
    survivalFrom(from):  P(alive at `to` | alive at `from`) = S(to) / S(from),
-                        giving P(Dead) = 1 − S for the Rich, Broke or Dead? wedge.       */
+                        giving P(Dead) = 1 − S for the Longevity Index wedge.       */
 const SSA_SURVIVAL = {
   male:   { 50:0.96,  55:0.93,  60:0.89,  65:0.83,  70:0.75,  75:0.64,  80:0.49,  85:0.33,  90:0.17,  95:0.06, 100:0.01 },
   female: { 50:0.97,  55:0.95,  60:0.92,  65:0.88,  70:0.82,  75:0.73,  80:0.60,  85:0.44,  90:0.26,  95:0.11, 100:0.03 },
@@ -2963,9 +2973,9 @@ function refreshCoast() {
     '<div class="text-lg font-bold mt-1 ' + (c.hot ? "text-orange-300" : "text-slate-100") + '">' + c.v + "</div>" +
     '<div class="text-[11px] text-slate-500 mt-0.5">' + c.s + "</div></div>").join("");
   // ---- interactive controls ----
-  $("coastSWR").value = String(A.swr);
+  if (document.activeElement !== $("coastSWR")) $("coastSWR").value = String(A.swr);
   $("coastSWRVal").textContent = (100 * A.swr).toFixed(1) + "%";
-  $("coastCG").value = String(A.contribGrowth);
+  if (document.activeElement !== $("coastCG")) $("coastCG").value = String(A.contribGrowth);
   $("coastCGVal").textContent = (100 * A.contribGrowth).toFixed(1) + "%";
   $("coastNomVal").textContent = fmtPct(A.nominalReturn);
   $("coastInflVal").textContent = fmtPct(A.inflation);
@@ -3024,7 +3034,7 @@ function refreshCoastDashboard(A) {
   if (meta) meta.textContent = "real r " + fmtPct(A.rReal) + " · SWR " + fmtPct(A.swr) + " · " + coastStatusBadge(A).replace(/<[^>]+>/g, "").trim();
 }
 
-/* ---------------- 5d. RICH, BROKE OR DEAD? — POST-RETIREMENT LONGEVITY ENGINE ----------------
+/* ---------------- 5d. LONGEVITY INDEX — POST-RETIREMENT LONGEVITY ENGINE ----------------
    Modeled after Engaging Data's "Will My Money Last?" early-retirement longevity
    visualizer. Runs N stochastic post-retirement paths on the ACTIVE plan's live values
    (retirement-age balances, blended real return/volatility, dividend yield, pension,
@@ -3042,7 +3052,7 @@ function refreshCoastDashboard(A) {
    Optional dynamic spending guardrail (Engaging Data style): if the portfolio falls
    below the trigger % of its retirement balance, cut spending & medical by the
    cutback %.                                                                          */
-const RDB_TIER_COLORS = { dead: "#334155", broke: "#f43f5e", surviving: "#f59e0b", growing: "#10b981", rich: "#06b6d4" };
+const RDB_TIER_COLORS = { dead: "#000000", broke: "#f43f5e", surviving: "#f59e0b", growing: "#10b981", rich: "#06b6d4" };   // dead band = true pitch black for maximum contrast
 const RDB_TIER_KEYS = ["dead", "broke", "surviving", "growing", "rich"];
 let rdbView = { nominal: false };
 function rdbRichLabel(mult) {
@@ -3155,7 +3165,7 @@ function rdbPathSim(plan, o) {
     S: a => { const s = survivalFrom(retAge, a, o.sex || "unisex"); return Number.isFinite(s) ? Math.min(1, Math.max(0, s)) : 0; } };
 }
 
-/* ---------------- 5e. RICH, BROKE OR DEAD? UI ---------------- */
+/* ---------------- 5e. LONGEVITY INDEX UI ---------------- */
 function rdbTabVisible() {
   const el = $("tab-rdb");
   return !!(el && !el.classList.contains("hidden"));
@@ -3184,9 +3194,9 @@ function refreshRdb() {
   $("rdbNom").checked = !!rdbView.nominal;
   const flexBody = $("rdbFlexBody");
   flexBody.style.opacity = o.flex ? "1" : "0.35";
-  $("rdbFlexCut").value = String(o.flexCut);
+  if (document.activeElement !== $("rdbFlexCut")) $("rdbFlexCut").value = String(o.flexCut);
   $("rdbFlexCutVal").textContent = Math.round(100 * o.flexCut) + "%";
-  $("rdbFlexThr").value = String(o.flexThreshold);
+  if (document.activeElement !== $("rdbFlexThr")) $("rdbFlexThr").value = String(o.flexThreshold);
   $("rdbFlexThrVal").textContent = Math.round(100 * o.flexThreshold) + "%";
   // ---- joint bands per age ----
   const richLbl = rdbRichLabel(o.richMult);
@@ -3343,9 +3353,68 @@ function refreshRdbDashboard(R, endBands, o) {
   const meta = $("rdbDashMeta");
   if (meta) meta.textContent = R.n + " paths · " + o.sex + (o.mortality ? " · mortality on" : " · financial-only");
 }
+/* ---- slider performance: rAF-throttled input handling so rapid dragging never stutters ---- */
+function rafThrottle(fn) {
+  // Browsers: coalesce input bursts to animation frames. Environments without rAF
+  // (tests / non-browser): run immediately so behavior stays deterministic.
+  const hasRaf = typeof requestAnimationFrame === "function";
+  let queued = false, self = null, args = null;
+  return function(...a) {
+    self = this; args = a;
+    if (!hasRaf) { fn.apply(self, args); return; }
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; fn.apply(self, args); });
+  };
+}
+/* ---- percentage sliders & rate fields: natural-percent entry with two-way binding ---- */
+const PCT_FIELDS = ["retTaxable", "retPretax", "retRoth", "retHSA", "retCash", "inflation", "medInflation",
+  "spendingEsc", "salaryCOLA", "pensionCOLA", "divYield"];
+const PCT_SLIDERS = ["dsCostsPct", "gpTentPct", "alDivShare", "alGrowthRothShare", "smileCutPct",
+  "cgBasisFraction", "coastSWR", "coastCG", "wsGkBand", "wsGkStep", "rdbFlexCut", "rdbFlexThr", "bktBull"];
+function syncPctPairs() {
+  try {
+    const boxes = document.querySelectorAll("[data-pct-for]");
+    for (let i = 0; i < boxes.length; i++) {
+      const box = boxes[i], sl = $(box.dataset.pctFor);
+      if (!sl || document.activeElement === box) continue;
+      const v = parseFloat(sl.value);
+      box.value = Number.isFinite(v) ? Math.round(v * 10000) / 100 : "";
+    }
+  } catch (e) { /* non-browser */ }
+}
+function enhancePercentSliders() {
+  try {
+    PCT_SLIDERS.forEach(id => {
+      const sl = $(id);
+      if (!sl || sl.dataset.pctBound) return;
+      sl.dataset.pctBound = "1";
+      const box = document.createElement("input");
+      box.type = "number";
+      box.step = "any";
+      box.className = "pct-pair";
+      box.placeholder = "%";
+      box.title = "Natural percentage — type 5.5 for 5.5%";
+      box.setAttribute("data-pct-for", id);
+      if (typeof sl.insertAdjacentElement === "function") sl.insertAdjacentElement("afterend", box); else return;
+      const toBox = () => { const v = parseFloat(sl.value); box.value = Number.isFinite(v) ? Math.round(v * 10000) / 100 : ""; };
+      toBox();
+      sl.addEventListener("input", () => { if (document.activeElement !== box) toBox(); });
+      box.addEventListener("input", rafThrottle(() => {
+        const pv = parseFloat(box.value);
+        if (!Number.isFinite(pv)) return;
+        const mn = parseFloat(sl.min), mx = parseFloat(sl.max);
+        const lo = Number.isFinite(mn) ? mn : -Infinity;
+        const hi = Number.isFinite(mx) && mx > lo ? mx : Infinity;   // tolerate missing/odd range attrs
+        sl.value = String(Math.min(hi, Math.max(lo, pv / 100)));
+        if (typeof sl.dispatchEvent === "function") sl.dispatchEvent(new Event("input"));
+      }));
+    });
+  } catch (e) { /* non-browser */ }
+}
 function bindRdbControls() {
   const on = (id, fn) => { const el = $(id); if (el) el.addEventListener("change", fn); };
-  const onInput = (id, fn) => { const el = $(id); if (el) el.addEventListener("input", fn); };
+  const onInput = (id, fn) => { const el = $(id); if (el) el.addEventListener("input", rafThrottle(fn)); };
   on("rdbMortality", () => { state.rdbMortality = $("rdbMortality").checked; saveState(); if (rdbTabVisible()) refreshRdb(); });
   on("rdbSex", () => { state.rdbSex = $("rdbSex").value; saveState(); if (rdbTabVisible()) refreshRdb(); });
   on("rdbRichMult", () => { state.rdbRichMult = Number($("rdbRichMult").value); saveState(); if (rdbTabVisible()) refreshRdb(); });
@@ -3371,7 +3440,7 @@ function bindRdbControls() {
       saveState();
       applyRdbVisibility();
       afterChange();
-      toast(state.rdbEnabled ? "Rich, Broke or Dead? module enabled." : "Rich, Broke or Dead? module hidden (nav + dashboard).");
+      toast(state.rdbEnabled ? "Longevity Index module enabled." : "Longevity Index module hidden (nav + dashboard).");
     });
   }
 }
@@ -3404,8 +3473,8 @@ function refreshWsSummary() {
   };
   const dEl = $("wsDesc");
   if (dEl) dEl.textContent = desc[plan.wsStrategy] || desc.fixed;
-  if ($("wsGkBand")) { $("wsGkBand").value = plan.wsGkBand; $("wsGkBandVal").textContent = Math.round(100 * plan.wsGkBand) + "%"; }
-  if ($("wsGkStep")) { $("wsGkStep").value = plan.wsGkStep; $("wsGkStepVal").textContent = Math.round(100 * plan.wsGkStep) + "%"; }
+  if ($("wsGkBand")) { if (document.activeElement !== $("wsGkBand")) $("wsGkBand").value = plan.wsGkBand; $("wsGkBandVal").textContent = Math.round(100 * plan.wsGkBand) + "%"; }
+  if ($("wsGkStep")) { if (document.activeElement !== $("wsGkStep")) $("wsGkStep").value = plan.wsGkStep; $("wsGkStepVal").textContent = Math.round(100 * plan.wsGkStep) + "%"; }
   const badge = $("wsBadge");
   if (badge) {
     const names = { fixed: "FIXED SWR · BENGEN", gk: "GUYTON-KLINGER GUARDRAILS", vpw: "VPW ACTIVE" };
@@ -3427,7 +3496,7 @@ function refreshWsSummary() {
   }
 }
 function bindWithdrawalStrategy() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   bind("wsStrategy", "change", e => { state[state.active].wsStrategy = e.target.value; afterChange(); toast("Withdrawal strategy → " + e.target.selectedOptions[0].textContent); });
   bind("wsGkBand", "input", () => {
     state[state.active].wsGkBand = Math.min(0.40, Math.max(0.05, Number($("wsGkBand").value) || 0.20));
@@ -3444,6 +3513,7 @@ function bindWithdrawalStrategy() {
 /* ---------------- 5g. 3-BUCKET ALLOCATION & REFILL UI ---------------- */
 function bucketsTabVisible() { const el = $("tab-buckets"); return !!(el && !el.classList.contains("hidden")); }
 const BKT_COLORS = { b1: "#38bdf8", b2: "#a78bfa", b3: "#34d399" };
+const BKT_AGE_MIN = 40;   // earliest selectable Bucket-Status inspection age
 function refreshBuckets() {
   const plan = state[state.active];
   if ($("bktPlanLabel")) $("bktPlanLabel").textContent = "Plan " + state.active + " — " + plan.name;
@@ -3489,7 +3559,8 @@ function refreshBuckets() {
   }
   const ag = $("bktAge");
   if (ag) {
-    const lo = Math.min(plan.retirementAge, plan.planEndAge);
+    // Floor is a fixed 40 (early retirees may inspect any age), never the retirement age.
+    const lo = Math.min(BKT_AGE_MIN, plan.planEndAge);
     ag.min = String(lo); ag.max = String(plan.planEndAge);
     let v = Number(ag.value);
     if (!Number.isFinite(v) || v < lo || v > plan.planEndAge) v = plan.retirementAge;
@@ -3510,6 +3581,8 @@ function renderBktDiagram(plan, r, selAge) {
     return;
   }
   const row = cands.find(x => x.age === selAge) || cands.reduce((best, x) => Math.abs(x.age - selAge) < Math.abs(best.age - selAge) ? x : best, cands[0]);
+  const snapEl = $("bktSnapNote");
+  if (snapEl) snapEl.textContent = selAge < cands[0].age ? "\u2192 showing first retirement year (" + cands[0].age + ")" : "";
   const defs = [
     { k: "b1", n: 1, name: "Cash Buffer", bal: row.bkt1, tgt: row.bktT1, role: "drawn first", back: "cash account → taxable" },
     { k: "b2", n: 2, name: "Fixed Income / Bonds", bal: row.bkt2, tgt: row.bktT2, role: "drawn second", back: "taxable → pre-tax" },
@@ -3559,7 +3632,7 @@ function drawBktChart(r) {
   });
 }
 function bindBucketsControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("bktEnabled", "change", e => {
     P().bucketEnabled = !!e.target.checked; afterChange();
@@ -3594,9 +3667,9 @@ function refreshAnnuity() {
   if ($("annPlanLabel")) $("annPlanLabel").textContent = "Plan " + state.active + " — " + plan.name;
   const en = $("annEnabled"); if (en) en.checked = !!plan.annEnabled;
   const body = $("annBody"); if (body) body.style.opacity = plan.annEnabled ? "1" : ".45";
-  const setv = (id, v) => { const el = $(id); if (el) el.value = v; };
+  const setv = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };   // skip focused boxes
   setv("annPremium", plan.annPremium); setv("annSource", plan.annSource);
-  setv("annStartAge", plan.annStartAge); setv("annMonthly", plan.annMonthly); setv("annCOLA", plan.annCOLA);
+  setv("annStartAge", plan.annStartAge); setv("annMonthly", plan.annMonthly); setv("annCOLA", Math.round(plan.annCOLA * 10000) / 100);   // natural %
   const r = simulatePlan(plan, {}).det;
   const meta = r.annMeta;
   const ban = $("annBanner");
@@ -3654,7 +3727,7 @@ function drawAnnChart(r) {
   });
 }
 function bindAnnuityControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("annEnabled", "change", e => { P().annEnabled = !!e.target.checked; afterChange(); toast(P().annEnabled ? "Annuity added to the income floor." : "Annuity removed."); });
   bind("annPremium", "input", () => { P().annPremium = Math.max(0, parseFloat($("annPremium").value) || 0); saveState(); });
@@ -3667,7 +3740,7 @@ function bindAnnuityControls() {
   bind("annMonthly", "input", () => { P().annMonthly = Math.max(0, parseFloat($("annMonthly").value) || 0); saveState(); });
   bind("annMonthly", "change", () => afterChange());
   bind("annCOLA", "change", () => {
-    P().annCOLA = Math.min(0.06, Math.max(0, parseFloat($("annCOLA").value) || 0));
+    P().annCOLA = Math.min(0.06, Math.max(0, (parseFloat($("annCOLA").value) || 0) / 100));   // natural % → fraction
     afterChange();
   });
 }
@@ -3739,7 +3812,7 @@ function drawLtcChart(withLtc, noLtc) {
   });
 }
 function bindLtcControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("ltcEnabled", "change", e => { P().ltcEnabled = !!e.target.checked; afterChange(); toast(P().ltcEnabled ? "LTC shock applied to Plan " + state.active + "." : "LTC shock removed."); });
   bind("ltcStartAge", "input", () => {
@@ -3766,7 +3839,7 @@ function refreshStateTax() {
   if ($("stPlanLabel")) $("stPlanLabel").textContent = "Plan " + state.active + " — " + plan.name;
   const ps = $("stPreset"); if (ps) ps.value = plan.stPreset || "none";
   const cb = $("stCustomBody"); if (cb) cb.classList.toggle("hidden", plan.stPreset !== "custom");
-  const ri = $("stRate"); if (ri) ri.value = plan.stRate;
+  const ri = $("stRate"); if (ri && document.activeElement !== ri) ri.value = Math.round(plan.stRate * 10000) / 100;   // natural % (skip while typing)
   const di = $("stDeduction"); if (di) di.value = plan.stDeduction;
   const pe = $("stPensionExempt"); if (pe) pe.checked = !!plan.stPensionExempt;
   const r = simulatePlan(plan, {}).det;
@@ -3825,10 +3898,10 @@ function drawStChart(r) {
   });
 }
 function bindStateControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("stPreset", "change", e => { applyStatePreset(P(), e.target.value); afterChange(); toast("State tax → " + stPresetLabel(P())); });
-  bind("stRate", "input", () => { P().stRate = Math.min(0.15, Math.max(0, parseFloat($("stRate").value) || 0)); saveState(); });
+  bind("stRate", "input", rafThrottle(() => { P().stRate = Math.min(0.15, Math.max(0, (parseFloat($("stRate").value) || 0) / 100)); saveState(); }));   // natural % → fraction
   bind("stRate", "change", () => afterChange());
   bind("stDeduction", "input", () => { P().stDeduction = Math.max(0, parseFloat($("stDeduction").value) || 0); saveState(); });
   bind("stDeduction", "change", () => afterChange());
@@ -3850,7 +3923,7 @@ function buildPrintReport() {
   drawWarnings(plan, r, mc);
   const wl = $("warnList");
   const warns = (wl && wl.children) ? Array.prototype.slice.call(wl.children).map(c => (c.textContent || "").replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 6) : [];
-  // longevity quick pass (Rich, Broke or Dead engine)
+  // longevity quick pass (Longevity Index engine)
   let lon = null;
   try {
     const R = rdbPathSim(plan, { sex: state.rdbSex || "unisex", mortality: true });
@@ -3921,7 +3994,7 @@ function buildPrintReport() {
     coastCard("Full FI age", coast.fullFiAge != null ? String(coast.fullFiAge) : "beyond horizon", "saving " + fmtMoney(coast.annualContrib) + "/yr") +
     coastCard("Required savings", Number.isFinite(coast.requiredMonthly) && coast.requiredMonthly > 0 ? fmtMoney(coast.requiredMonthly) + "/mo" : "$0", "to stay on schedule") +
     "</div>" +
-    '<div class="pr-h2">Longevity (Rich, Broke or Dead?)</div>' +
+    '<div class="pr-h2">Longevity Index</div>' +
     (lon
       ? '<div class="pr-grid">' +
         card("Portfolio at retirement", fmtMoney(lon.startNw), "age " + lon.retAge) +
@@ -4006,7 +4079,7 @@ function refreshAca() {
   }
 }
 function bindAcaControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("acaEnabled", "change", e => { P().acaEnabled = !!e.target.checked; afterChange(); toast(P().acaEnabled ? "ACA Premium Tax Credit modeling ON for Plan " + state.active + "." : "ACA modeler off."); });
   bind("acaHousehold", "input", () => {
@@ -4051,7 +4124,7 @@ function refreshCg() {
   });
 }
 function bindCgControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("cgHarvestEnabled", "change", e => { P().cgHarvestEnabled = !!e.target.checked; afterChange(); toast(P().cgHarvestEnabled ? "0% CG harvesting ON for Plan " + state.active + "." : "CG harvester off."); });
   bind("cgBasisFraction", "input", () => {
@@ -4097,7 +4170,7 @@ function refreshDs() {
   }
 }
 function bindDsControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("dsEnabled", "change", e => { P().dsEnabled = !!e.target.checked; afterChange(); toast(P().dsEnabled ? "Downsizing event armed for Plan " + state.active + "." : "Downsizing event removed."); });
   bind("dsAge", "input", () => {
@@ -4147,7 +4220,7 @@ function refreshSmile() {
   }
 }
 function bindSmileControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("smileEnabled", "change", e => { P().smileEnabled = !!e.target.checked; afterChange(); toast(P().smileEnabled ? "Spending smile ON for Plan " + state.active + "." : "Spending curve flattened."); });
   bind("smileSlowGoAge", "input", () => { P().smileSlowGoAge = Math.min(95, Math.max(55, Math.round(Number($("smileSlowGoAge").value) || 75))); if ($("smileSlowVal")) $("smileSlowVal").textContent = P().smileSlowGoAge; saveState(); refreshSmile(); });
@@ -4174,7 +4247,7 @@ function refreshBl() {
   }
 }
 function bindBlControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("blEnabled", "change", e => { P().blEnabled = !!e.target.checked; afterChange(); toast(P().blEnabled ? "Bucket-list expense armed for Plan " + state.active + "." : "Bucket-list expense removed."); });
   bind("blAge", "input", () => { P().blAge = Math.min(100, Math.max(50, Math.round(Number($("blAge").value) || 70))); if ($("blAgeVal")) $("blAgeVal").textContent = P().blAge; saveState(); refreshBl(); });
@@ -4208,7 +4281,7 @@ function refreshPb() {
   }
 }
 function bindPbControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("pbEnabled", "change", e => { P().pbEnabled = !!e.target.checked; afterChange(); toast(P().pbEnabled ? "Lump-sum buyout ON for Plan " + state.active + " — lifetime payments replaced." : "Lifetime pension restored."); });
   bind("pbLumpSum", "input", () => { P().pbLumpSum = Math.max(0, Number($("pbLumpSum").value) || 0); saveState(); refreshPb(); });
@@ -4249,7 +4322,7 @@ function refreshGp() {
   });
 }
 function bindGpControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); };
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); };
   const P = () => state[state.active];
   bind("gpEnabled", "change", e => { P().gpEnabled = !!e.target.checked; afterChange(); toast(P().gpEnabled ? "Bond-tent glidepath ON for Plan " + state.active + "." : "Static allocation restored."); });
   bind("gpTentPct", "input", () => { P().gpTentPct = Math.min(0.4, Math.max(0.05, Number($("gpTentPct").value) || 0.2)); if ($("gpTentVal")) $("gpTentVal").textContent = Math.round(100 * P().gpTentPct) + "% to bonds"; if ($("gpTrough")) $("gpTrough").textContent = Math.round(100 * (1 - P().gpTentPct)) + "%"; saveState(); refreshGp(); });
@@ -4478,8 +4551,8 @@ function refreshBr() {
 function bindBrControls() {
   const s = $("brStartAge"), y = $("brYears"), a = $("brAmount"), en = $("brEnabled");
   if (en) en.addEventListener("change", e => { state[state.active].brEnabled = !!e.target.checked; afterChange(); });
-  if (s) s.addEventListener("input", () => { state[state.active].brStartAge = parseInt(s.value, 10); saveState(); refreshBr(); });
-  if (y) y.addEventListener("input", () => { state[state.active].brYears = parseInt(y.value, 10); saveState(); refreshBr(); });
+  if (s) s.addEventListener("input", rafThrottle(() => { state[state.active].brStartAge = parseInt(s.value, 10); saveState(); refreshBr(); }));
+  if (y) y.addEventListener("input", rafThrottle(() => { state[state.active].brYears = parseInt(y.value, 10); saveState(); refreshBr(); }));
   if (a) a.addEventListener("change", () => { state[state.active].brAmount = Math.max(0, parseFloat(a.value) || 0); afterChange(); });
 }
 function refreshAl() {
@@ -4523,8 +4596,8 @@ function refreshAl() {
 }
 function bindAlControls() {
   const dv = $("alDivShare"), gv = $("alGrowthRothShare");
-  if (dv) dv.addEventListener("input", () => { state[state.active].alDivShare = parseFloat(dv.value); saveState(); refreshAl(); });
-  if (gv) gv.addEventListener("input", () => { state[state.active].alGrowthRothShare = parseFloat(gv.value); saveState(); refreshAl(); });
+  if (dv) dv.addEventListener("input", rafThrottle(() => { state[state.active].alDivShare = parseFloat(dv.value); saveState(); refreshAl(); }));
+  if (gv) gv.addEventListener("input", rafThrottle(() => { state[state.active].alGrowthRothShare = parseFloat(gv.value); saveState(); refreshAl(); }));
 }
 
 /* ---------------- 5t. LEDGER CSV EXPORT · 2D RETIREMENT×SPENDING HEATMAP ---------------- */
@@ -4637,7 +4710,7 @@ function refreshMtg() {
   if (g("mtgEnabled")) g("mtgEnabled").checked = !!plan.mtgEnabled;
   if (g("mtgPayoffRet")) g("mtgPayoffRet").checked = !!plan.mtgPayoffRet;
   if (g("mtgBalance")) g("mtgBalance").value = plan.mtgBalance;
-  if (g("mtgRate")) g("mtgRate").value = plan.mtgRate;
+  if (g("mtgRate")) g("mtgRate").value = Math.round(plan.mtgRate * 10000) / 100;   // natural %
   if (g("mtgPayment")) g("mtgPayment").value = plan.mtgPayment;
   if (g("mtgYearsLeft")) g("mtgYearsLeft").value = plan.mtgYearsLeft;
   const box = g("mtgSummary");
@@ -4673,7 +4746,7 @@ function bindMtgControls() {
     const el = $(id); if (!el) return;
     el.addEventListener("change", e => { state[state.active][id] = !!e.target.checked; afterChange(); });
   });
-  [["mtgBalance", v => Math.max(0, v)], ["mtgRate", v => Math.min(0.25, Math.max(0, v))],
+  [["mtgBalance", v => Math.max(0, v)], ["mtgRate", v => Math.min(0.25, Math.max(0, Number.isFinite(v) ? v / 100 : 0))],   // natural % → fraction
    ["mtgPayment", v => Math.max(0, v)], ["mtgYearsLeft", v => Math.min(50, Math.max(1, Math.round(v)))]].forEach(([id, clamp]) => {
     const el = $(id); if (!el) return;
     el.addEventListener("change", e => { state[state.active][id] = clamp(parseFloat(e.target.value) || 0); afterChange(); });
@@ -4738,7 +4811,7 @@ function refreshCape() {
 }
 function bindCapeControls() {
   const en = $("capeEnabled"); if (en) en.addEventListener("change", e => { state[state.active].capeEnabled = !!e.target.checked; afterChange(); });
-  const lv = $("capeLevel"); if (lv) lv.addEventListener("input", () => { state[state.active].capeLevel = parseInt(lv.value, 10); saveState(); refreshCape(); });
+  const lv = $("capeLevel"); if (lv) lv.addEventListener("input", rafThrottle(() => { state[state.active].capeLevel = parseInt(lv.value, 10); saveState(); refreshCape(); }));
 }
 function refreshTlh() {
   const plan = state[state.active];
@@ -4877,7 +4950,7 @@ function refreshSepp() {
   const g = id => $(id);
   if (g("seppEnabled")) g("seppEnabled").checked = !!plan.seppEnabled;
   if (g("seppStartAge")) g("seppStartAge").value = plan.seppStartAge;
-  if (g("seppRate")) g("seppRate").value = plan.seppRate;
+  if (g("seppRate")) g("seppRate").value = Math.round(plan.seppRate * 10000) / 100;   // natural %
   if (g("seppLifeExp")) g("seppLifeExp").value = plan.seppLifeExp;
   const box = g("seppSummary");
   if (!box) return;
@@ -4901,10 +4974,10 @@ function refreshSepp() {
 function bindSeppControls() {
   const en = $("seppEnabled"); if (en) en.addEventListener("change", e => { state[state.active].seppEnabled = !!e.target.checked; afterChange(); });
   [["seppStartAge", v => Math.min(59, Math.max(40, Math.round(v)))],
-   ["seppRate", v => Math.min(0.12, Math.max(0.005, v))],
+   ["seppRate", v => Math.min(0.12, Math.max(0.005, Number.isFinite(v) ? v / 100 : 0.05))],
    ["seppLifeExp", v => Math.min(110, Math.max(60, Math.round(v)))]].forEach(([id, clamp]) => {
     const el = $(id); if (!el) return;
-    el.addEventListener("change", e => { state[state.active][id] = clamp(parseFloat(e.target.value) || 0); afterChange(); });
+    el.addEventListener("change", e => { state[state.active][id] = clamp(parseFloat(e.target.value) || 0); afterChange(); });   // IRS rate entered as natural %
   });
 }
 function refreshHecm() {
@@ -4913,7 +4986,7 @@ function refreshHecm() {
   if (g("hecmEnabled")) g("hecmEnabled").checked = !!plan.hecmEnabled;
   if (g("hecmHomeValue")) g("hecmHomeValue").value = plan.hecmHomeValue;
   if (g("hecmLimitPct")) g("hecmLimitPct").value = plan.hecmLimitPct;
-  if (g("hecmGrowthRate")) g("hecmGrowthRate").value = plan.hecmGrowthRate;
+  if (g("hecmGrowthRate")) g("hecmGrowthRate").value = Math.round(plan.hecmGrowthRate * 10000) / 100;   // natural %
   if (g("hecmAge")) g("hecmAge").value = plan.hecmAge;
   const box = g("hecmSummary");
   if (!box) return;
@@ -4932,9 +5005,9 @@ function refreshHecm() {
 function bindHecmControls() {
   const en = $("hecmEnabled"); if (en) en.addEventListener("change", e => { state[state.active].hecmEnabled = !!e.target.checked; afterChange(); });
   [["hecmHomeValue", v => Math.max(0, v)], ["hecmLimitPct", v => Math.min(1, Math.max(0, v))],
-   ["hecmGrowthRate", v => Math.min(0.15, Math.max(0, v))], ["hecmAge", v => Math.min(90, Math.max(55, Math.round(v)))]].forEach(([id, clamp]) => {
+   ["hecmGrowthRate", v => Math.min(0.15, Math.max(0, Number.isFinite(v) ? v / 100 : 0))], ["hecmAge", v => Math.min(90, Math.max(55, Math.round(v)))]].forEach(([id, clamp]) => {
     const el = $(id); if (!el) return;
-    el.addEventListener("change", e => { state[state.active][id] = clamp(parseFloat(e.target.value) || 0); afterChange(); });
+    el.addEventListener("change", e => { state[state.active][id] = clamp(parseFloat(e.target.value) || 0); afterChange(); });   // growth rate entered as natural %
   });
 }
 function refreshShoebox() {
@@ -5225,7 +5298,7 @@ function refreshDashboard() {
       cw.style.display = "none";
     }
   }
-  // Rich, Broke or Dead? dashboard widget — syncs with live plan values; hidden gracefully when module is OFF
+  // Longevity Index dashboard widget — syncs with live plan values; hidden gracefully when module is OFF
   if (state.rdbEnabled !== false) refreshRdb();
 }
 function drawSSChart(plan) {
@@ -5365,6 +5438,51 @@ function timelineValues(plan) {
   MILESTONES.forEach(m => { v[m.key] = m.key === "medicareAge" ? 65 : m.key === "rmdAge" ? 75 : plan[m.key]; });
   return v;
 }
+// Key of the milestone slider currently being dragged. While set, drawTimeline()
+// refreshes card TEXT and track nodes in place instead of rebuilding the grid —
+// rebuilding via innerHTML would destroy the slider under the pointer and kill the drag.
+let tlDragKey = null;
+
+function tlCardExtra(m, plan, age) {
+  if (m.key === "ssClaimAge") {
+    const m2 = ssMonthlyBenefit(plan, age);
+    return "≈ $" + fmtNum(m2) + "/mo (vs " + fmtNum(plan.ssFRA) + " at FRA)";
+  } else if (m.key === "retirementAge") {
+    return "salary " + fmtMoney(plan.salary) + " stops; ladder " + (plan.rcEnabled ? "from " + plan.rcStartAge : "off");
+  } else if (m.key === "pensionAge") {
+    return fmtMoney(plan.pensionStart) + "/yr, COLA " + fmtPct(plan.pensionCOLA);
+  } else if (m.key === "currentAge") {
+    return "start year " + START_YEAR + " · plan runs to " + (START_YEAR + plan.planEndAge - plan.currentAge);
+  } else if (m.key === "medicareAge") {
+    return "medical " + fmtMoney((plan.medEssential + plan.medDiscretionary)) + ", med-infl " + fmtPct(plan.medInflation);
+  } else if (m.key === "rmdAge") {
+    return "pre-tax ÷ 14.4 initially";
+  }
+  return "horizon " + (START_YEAR + age - plan.currentAge);
+}
+
+function refreshTimelineCardsInPlace(plan, v, min, max) {
+  const grid = $("tlCards");
+  if (!grid || typeof grid.querySelector !== "function") return;
+  MILESTONES.forEach(m => {
+    const card = grid.querySelector('[data-tl-card="' + m.key + '"]');
+    if (!card || typeof card.querySelector !== "function") return;
+    const age = v[m.key];
+    const ageEl = card.querySelector("[data-tl-age]");
+    if (ageEl) ageEl.textContent = String(age);
+    const extraEl = card.querySelector("[data-tl-extra]");
+    if (extraEl) extraEl.textContent = tlCardExtra(m, plan, age);
+    const lo = Math.min(min + 1, max - 1), hi = max - 1;
+    const minLab = card.querySelector("[data-tl-min]");
+    if (minLab) minLab.textContent = String(lo);
+    const maxLab = card.querySelector("[data-tl-max]");
+    if (maxLab) maxLab.textContent = String(hi);
+    if (m.key === tlDragKey) return;                        // never touch the slider under the pointer
+    const sl = card.querySelector('input[type=range]');
+    if (sl) { sl.min = String(lo); sl.max = String(hi); sl.value = String(Math.min(hi, Math.max(lo, age))); }
+  });
+}
+
 function drawTimeline() {
   const plan = state[state.active];
   const v = timelineValues(plan);
@@ -5389,55 +5507,49 @@ function drawTimeline() {
     el.title = m.desc;
     nodes.appendChild(el);
   });
-  // cards
+  // cards (skipped entirely mid-drag: the grid stays put so the active slider survives)
+  const grid = $("tlCards");
+  if (tlDragKey && grid && typeof grid.querySelectorAll === "function" && grid.querySelectorAll("[data-tl-card]").length) {
+    refreshTimelineCardsInPlace(plan, v, min, max);
+    return;
+  }
   const cardFor = m => {
     const age = v[m.key];
-    let extra = "";
-    if (m.key === "ssClaimAge") {
-      const m2 = ssMonthlyBenefit(plan, age);
-      extra = "≈ $" + fmtNum(m2) + "/mo (vs " + fmtNum(plan.ssFRA) + " at FRA)";
-    } else if (m.key === "retirementAge") {
-      extra = "salary " + fmtMoney(plan.salary) + " stops; ladder " + (plan.rcEnabled ? "from " + plan.rcStartAge : "off");
-    } else if (m.key === "pensionAge") {
-      extra = fmtMoney(plan.pensionStart) + "/yr, COLA " + fmtPct(plan.pensionCOLA);
-    } else if (m.key === "currentAge") {
-      extra = "start year " + START_YEAR + " · plan runs to " + (START_YEAR + plan.planEndAge - plan.currentAge);
-    } else if (m.key === "medicareAge") {
-      extra = "medical " + fmtMoney((plan.medEssential + plan.medDiscretionary)) + ", med-infl " + fmtPct(plan.medInflation);
-    } else if (m.key === "rmdAge") {
-      extra = "pre-tax ÷ 14.4 initially";
-    } else {
-      extra = "horizon " + (START_YEAR + age - plan.currentAge);
-    }
+    const extra = tlCardExtra(m, plan, age);
     const isStatic = (m.key === "medicareAge" || m.key === "rmdAge");
-    return '<div class="stat-card rounded-xl p-3">' +
+    return '<div class="stat-card rounded-xl p-3" data-tl-card="' + m.key + '">' +
       '<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:' + m.color + '"></span>' +
       '<span class="text-sm font-semibold">' + m.label + '</span>' +
       (isStatic ? '<span class="chip text-slate-500 ml-auto">fixed by law</span>' : "") + '</div>' +
-      '<div class="text-2xl font-bold mt-2">' + age + ' <span class="text-xs text-slate-500 font-normal">yrs old</span></div>' +
-      '<div class="text-[11px] text-slate-500 mt-1">' + extra + '</div>' +
+      '<div class="text-2xl font-bold mt-2"><span data-tl-age>' + age + '</span> <span class="text-xs text-slate-500 font-normal">yrs old</span></div>' +
+      '<div class="text-[11px] text-slate-500 mt-1" data-tl-extra>' + extra + '</div>' +
       (isStatic ? "" :
-        '<div class="mt-2"><div class="flex justify-between text-[10px] text-slate-600"><span>' + (min + 1) + '</span><span>' + (max - 1) + '</span></div>' +
+        '<div class="mt-2"><div class="flex justify-between text-[10px] text-slate-600"><span data-tl-min>' + (min + 1) + '</span><span data-tl-max>' + (max - 1) + '</span></div>' +
         '<input type="range" class="w-full" data-age="' + m.key + '" min="' + (min + 1) + '" max="' + (max - 1) + '" value="' + age + '"></div>') +
       '</div>';
   };
-  $("tlCards").innerHTML = MILESTONES.map(cardFor).join("");
-  $("tlCards").querySelectorAll("input[type=range]").forEach(sl => {
-    sl.addEventListener("input", () => {
-      const p = state[state.active];
-      setMilestone(p, sl.dataset.age, Number(sl.value));
+  grid.innerHTML = MILESTONES.map(cardFor).join("");
+  grid.querySelectorAll("input[type=range]").forEach(sl => {
+    sl.addEventListener("input", rafThrottle(() => {
+      tlDragKey = sl.dataset.age;                          // mark drag BEFORE any recalc/redraw
+      setMilestone(state[state.active], sl.dataset.age, Number(sl.value));
+    }));
+    sl.addEventListener("change", () => {                  // pointer released → normalize everything
+      if (tlDragKey === sl.dataset.age) tlDragKey = null;
+      drawTimeline();
     });
   });
 }
 function clampAges(p) {
-  // keep every milestone consistent: 18 ≤ currentAge < retirementAge, horizon ≥ retirementAge + 10
-  p.currentAge = Math.min(90, p.retirementAge - 1, Math.max(18, Math.round(p.currentAge)));
-  if (p.retirementAge < p.currentAge + 1 || p.retirementAge > p.planEndAge - 1) {
-    p.retirementAge = Math.min(p.planEndAge - 1, Math.max(p.currentAge + 1, p.retirementAge));
-  }
+  // Milestones stay consistent WITHOUT forbidding an already-retired household:
+  // 18 ≤ currentAge ≤ 90; retirement/pension may sit at or BEFORE currentAge (you can
+  // already be collecting); horizon ≥ max(retirementAge + 10, currentAge + 5).
+  p.currentAge = Math.min(90, Math.max(18, Math.round(p.currentAge)));
+  if (p.retirementAge > p.planEndAge - 1) p.retirementAge = Math.max(p.currentAge, Math.min(p.planEndAge - 1, p.retirementAge));
   if (p.planEndAge < p.retirementAge + 10) p.planEndAge = Math.min(105, p.retirementAge + 10);
-  if (p.pensionAge < p.currentAge) p.pensionAge = p.currentAge;
+  if (p.planEndAge < p.currentAge + 5) p.planEndAge = Math.min(105, p.currentAge + 5);
   if (p.pensionAge > p.planEndAge) p.pensionAge = p.planEndAge;
+  if (p.pensionAge < 40) p.pensionAge = 40;
   // Roth ladder stays valid: start ∈ [currentAge, 74] (or 74/inactive when currentAge ≥ 74), end ≥ start, end ≤ 74
   if (p.currentAge >= 74) p.rcStartAge = 74;
   else p.rcStartAge = Math.min(74, Math.max(p.currentAge, p.rcStartAge));
@@ -5447,15 +5559,14 @@ function clampAges(p) {
 function setMilestone(p, key, val) {
   val = Math.round(val);
   if (key === "currentAge") {
-    // adult range 18–90, strictly capped at retirementAge − 1 (never clamped back to 0–15)
-    const target = Math.min(90, p.retirementAge - 1, Math.max(18, val));
+    // Adult range 18–90. Current age may pass retirement/pension — you can already be
+    // retired and collecting. Only the horizon needs to stay sane.
+    const target = Math.min(90, Math.max(18, val));
     p.currentAge = target;
-    if (p.retirementAge < target + 1) p.retirementAge = target + 1;
-    if (p.pensionAge < target) p.pensionAge = target;
-    if (p.planEndAge < p.retirementAge + 10) p.planEndAge = Math.min(105, p.retirementAge + 10);
+    if (p.planEndAge < Math.max(p.retirementAge + 10, target + 5)) p.planEndAge = Math.min(105, Math.max(p.retirementAge + 10, target + 5));
   }
-  else if (key === "retirementAge") p.retirementAge = Math.min(p.planEndAge - 1, Math.max(p.currentAge + 1, val));
-  else if (key === "pensionAge") p.pensionAge = Math.min(p.planEndAge, Math.max(p.currentAge, val));
+  else if (key === "retirementAge") p.retirementAge = Math.min(p.planEndAge - 1, Math.max(40, val));   // may be in the past (already retired)
+  else if (key === "pensionAge") p.pensionAge = Math.min(p.planEndAge, Math.max(40, val));             // may have started before today
   else if (key === "ssClaimAge") p.ssClaimAge = Math.min(70, Math.max(62, val));
   else if (key === "planEndAge") p.planEndAge = Math.min(105, Math.max(p.retirementAge + 10, val));
   clampAges(p);
@@ -5549,7 +5660,7 @@ function refreshRoth() {
 }
 function bindRothControls() {
   const p = () => state[state.active];
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); }; // null-guarded: missing element never crashes
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); }; // null-guarded: missing element never crashes
   bind("rcEnabled", "change", e => { p().rcEnabled = e.target.checked; afterChange(); });
   bind("rcStart", "input", e => { p().rcStartAge = Number(e.target.value); if (p().rcEndAge < p().rcStartAge) p().rcEndAge = p().rcStartAge; afterChange(); });
   bind("rcEnd", "input", e => { p().rcEndAge = Number(e.target.value); if (p().rcStartAge > p().rcEndAge) p().rcStartAge = p().rcEndAge; afterChange(); });
@@ -5564,7 +5675,7 @@ function coastTabVisible() {
   return !!(el && !el.classList.contains("hidden"));
 }
 function bindCoastControls() {
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); }; // null-guarded: missing element never crashes
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); }; // null-guarded: missing element never crashes
   bind("coastSWR", "input", e => {
     state.coastSWR = Math.min(0.05, Math.max(0.03, Number(e.target.value)));
     if ($("coastSWRVal")) $("coastSWRVal").textContent = (100 * state.coastSWR).toFixed(1) + "%";
@@ -5795,18 +5906,19 @@ function bindAccounts() {
       const f = inp.dataset.f;
       let v = parseFloat(inp.value);
       if (isNaN(v)) v = 0;
+      if (PCT_FIELDS.indexOf(f) >= 0) v = v / 100;   // natural percent entry: type 7 ⇒ 7% (0.07 stored)
       if (f === "currentAge") {
-        v = Math.min(90, p.retirementAge - 1, Math.max(18, Math.round(v)));
-        if (p.retirementAge < v + 1) p.retirementAge = v + 1;
-        if (p.pensionAge < v) p.pensionAge = v;
-        if (p.planEndAge < p.retirementAge + 10) p.planEndAge = Math.min(105, p.retirementAge + 10);
+        // You may already be retired and/or collecting a pension: current age may legally sit
+        // at or beyond the retirement/pension milestones. Only sanity bounds apply.
+        v = Math.min(90, Math.max(18, Math.round(v)));
+        if (p.planEndAge < Math.max(p.retirementAge + 10, v + 5)) p.planEndAge = Math.min(105, Math.max(p.retirementAge + 10, v + 5));
       }
-      if (f === "retirementAge") v = Math.min(p.planEndAge - 1, Math.max(p.currentAge + 1, Math.round(v)));
-      if (f === "pensionAge") v = Math.min(p.planEndAge, Math.max(p.currentAge, Math.round(v)));
+      if (f === "retirementAge") v = Math.min(p.planEndAge - 1, Math.max(40, Math.round(v)));   // may be in the past (already retired)
+      if (f === "pensionAge") v = Math.min(p.planEndAge, Math.max(40, Math.round(v)));          // may have started before today
       if (f === "ssClaimAge") v = Math.min(70, Math.max(62, Math.round(v)));
       if (f === "planEndAge") v = Math.min(105, Math.max(p.retirementAge + 10, Math.round(v)));
       if (f === "rcStartAge" || f === "rcEndAge") v = Math.min(74, Math.max(p.currentAge, Math.round(v)));
-      if (f === "divYield") v = Math.min(0.20, Math.max(0, parseFloat(inp.value) || 0));
+      if (f === "divYield") v = Math.min(0.20, Math.max(0, v));   // v is already the converted fraction — never re-parse the raw box
       p[f] = v;
       afterChange();
     };
@@ -5816,12 +5928,19 @@ function bindAccounts() {
   const fill = () => {
     const p = state[state.active];
     wrap.querySelectorAll("[data-f]").forEach(inp => {
+      if (document.activeElement === inp) return;   // never rewrite a box mid-typing (decimal points were being eaten)
       const f = inp.dataset.f;
       let v = p[f];
-      if (["retTaxable", "retPretax", "retRoth", "retHSA", "retCash", "inflation", "medInflation", "spendingEsc", "salaryCOLA", "pensionCOLA", "rcBracket"].includes(f)) v = v;
-      if (["retTaxable", "retPretax", "retRoth", "retHSA", "retCash", "inflation", "medInflation", "spendingEsc", "salaryCOLA", "pensionCOLA"].includes(f)) inp.value = v;
+      if (PCT_FIELDS.indexOf(f) >= 0) inp.value = Math.round(v * 10000) / 100;   // show natural percent
       else inp.value = v;
     });
+    const dyNote = $("divYieldNote");
+    if (dyNote) {
+      const dy = Number.isFinite(p.divYield) ? p.divYield : 0;
+      const base = Math.max(0, p.taxable || 0);
+      dyNote.textContent = "Currently set to " + (100 * dy).toFixed(2).replace(/\.?0+$/, "") + "% per year \u2014 pays " +
+        fmtMoney(base * dy) + "/yr in dividends on your starting taxable balance of " + fmtMoney(base) + " (qualified-rate taxation; reinvested by default).";
+    }
     renderWaterfallChips();
   };
   window.__fillAccounts = fill;
@@ -5864,6 +5983,7 @@ function showTab(name) {
 }
 function afterChange() {
   saveState();
+  syncPctPairs();
   const active = document.querySelector(".tab-panel:not(.hidden)");
   const name = active ? active.id.replace("tab-", "") : "dashboard";
   if (name === "dashboard") { refreshDashboard(); refreshSSMatrix(); }
@@ -5893,7 +6013,7 @@ function bindNav() {
     });
   });
   // dashboard A/B toggle sets which plan is "active" everywhere
-  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, fn); }; // null-guarded: missing element never crashes
+  const bind = (id, type, fn) => { const el = $(id); if (el) el.addEventListener(type, type === "input" ? rafThrottle(fn) : fn); }; // null-guarded: missing element never crashes
   const seg = $("dashSeg");
   if (seg) seg.querySelectorAll(".seg-btn").forEach(b => {
     b.addEventListener("click", () => { state.active = b.dataset.s; afterChange(); });
@@ -6013,6 +6133,7 @@ function boot() {
   bindRdbControls();
   bindScenarioControls();
   bindData();
+  enhancePercentSliders();
   applyCoastVisibility();
   applyRdbVisibility();
   refreshDashboard();
