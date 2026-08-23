@@ -99,6 +99,12 @@ Your inputs are automatically saved in the browser’s local storage.
 
 ---
 
+## Download for Offline Use
+
+* **Desktop / Web Browser:** [Download index.html (Right-click -> Save Link As)](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/index.html)
+* **Android Device:** [Download Standalone APK (v1.0.0)](https://github.com/kingfish600/opennest-horizon-planner/releases/download/v1.0.0/opennest_horizon_planner.apk)
+---
+
 ## Acknowledgments & Inspirations
 * Longevity & Mortality Visualizer inspired by Engaging Data's classic "Rich, Broke or Dead" model.
 * Safe withdrawal rate and guardrail concepts built on Bengen, Guyton-Klinger, and Trinity study research.
