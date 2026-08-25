@@ -11,8 +11,8 @@ android {
         applicationId = "com.opennest.horizon"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.3.0"
+        versionCode = 10
+        versionName = "1.5.0"
     }
 
     buildTypes {

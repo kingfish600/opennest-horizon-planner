@@ -102,10 +102,10 @@ Your inputs are automatically saved in the browser’s local storage.
 ## Download for Offline Use
 
 * **Desktop / Web Browser:** [Download index.html (Right-click -> Save Link As)](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/index.html)
-* **Android Device:** [Download Standalone APK (v1.3.0)](https://github.com/kingfish600/opennest-horizon-planner/releases/download/v1.3.0/opennest_horizon_planner.apk) · or the always-current build: [opennest_horizon_planner.apk in-repo](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/opennest_horizon_planner.apk)
+* **Android Device:** [Download Standalone APK (v1.5.0)](https://github.com/kingfish600/opennest-horizon-planner/releases/download/v1.5.0/opennest_horizon_planner.apk) · or the always-current build: [opennest_horizon_planner.apk in-repo](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/opennest_horizon_planner.apk)
 ---
 
-## Android App (v1.3.0)
+## Android App (v1.5.0)
 
 A native, fully offline Android wrapper ships in this repo ([`android/`](android/)) and as a prebuilt APK above.
 
@@ -127,6 +127,14 @@ cd android
 ---
 
 ## What's New
+
+### v1.5.0 — audited math, externally verified 2025 constants, clean-slate defaults
+* **Full engine math audit** (independent oracle + 441-check regression suite): taxes and IRMAA are now actually *paid* from the portfolio each year; dividends no longer double-count inside taxable total-return growth; Monte Carlo shocks are correlated across accounts; QLAC payouts include deferral accumulation; SEPP windows measured from the effective start age; Guyton-Klinger guardrails re-anchor correctly; heatmap cache signature covers every driver
+* **Statutory corrections:** exact SSA two-phase early-reduction schedule (62 → 70% PIA), layered IRC §86 benefit taxation, ACA contribution capped at the §36B 8.5% ceiling, IRMAA modernized to CMS 2025 with joint-filer threshold doubling (statutory $750k top boundary), state tax progressive brackets healed (CA @ $200k now $15.2k, was a broken ~$3.2k flatline)
+* **Externally verified 2025 constants** (IRS Rev. Proc. 2024-40/2024-35 · CMS 2025 fact sheet · Pub 590-B · HHS): post-OBBBA standard deduction ($15,750/$31,500), $250,525/$626,350 bracket caps with the statutory **$751,600 MFJ 35%→37% boundary**, LTCG breakpoints incl. MFJ $600,050, full Uniform Lifetime Table tail (120+ → 2.0), OBBBA senior deduction ($6,000/person, 2025–2028, MAGI-phased), official ACA applicable-percentage bands, $108k QCD cap, 2025 FPL guidelines
+* **Clean-slate defaults:** personal dollar inputs (salary, savings, all five account balances, pension, SS PIA) start at **0** — no presumed net worth; planning rates (returns, inflation, COLAs) stay visible for adjustment
+* **Tax-year transparency:** header badge + PDF footer disclose the 2025 legal basis; TCJA-sunset scenario relabeled as a hypothetical higher-tax stress test (OBBBA made TCJA rules permanent)
+* Crisis backtester: GFC-era 10-year Treasury return corrected (2009 −11.1%)
 
 ### v1.3.0
 * Print Report now exports a real PDF via the Android system print dialog ("Save as PDF")

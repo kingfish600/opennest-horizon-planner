@@ -116,7 +116,7 @@
       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 via-teal-400 to-emerald-500 flex items-center justify-center font-black text-slate-950 text-xs tracking-tight shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-300/40">ON</div>
       <div>
         <h1 class="text-sm font-bold tracking-tight text-slate-100 leading-none">OpenNest <span class="text-cyan-400">Horizon Planner</span></h1>
-        <p class="text-[11px] text-slate-500 leading-none mt-0.5">Guardrails · 3-Bucket engine · Annuity floor · LTC stress · State tax · 100% local, nothing leaves your browser</p>
+        <p class="text-[11px] text-slate-500 leading-none mt-0.5"><span id="taxYearBadge" class="text-amber-400/90">📅 Tax rules basis: 2025</span> · Guardrails · 3-Bucket engine · Annuity floor · LTC stress · State tax · 100% local, nothing leaves your browser</p>
       </div>
     </div>
     <div class="ml-auto flex items-center gap-2">
@@ -335,7 +335,7 @@
           </div>
           <h3 class="text-sm font-semibold text-slate-300 mt-4 mb-2">Growth Assumptions</h3>
           <div class="grid grid-cols-3 gap-3">
-            <div><label class="text-xs text-slate-400">Taxable return % <span class="text-slate-500">(type 7 = 7%)</span></label><input type="number" step="0.25" data-f="retTaxable" class="num-input mt-1"></div>
+            <div><label class="text-xs text-slate-400">Taxable return % (total, incl. dividends) <span class="text-slate-500">(type 7 = 7%)</span></label><input type="number" step="0.25" data-f="retTaxable" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Pre-tax return % <span class="text-slate-500">(type 6 = 6%)</span></label><input type="number" step="0.25" data-f="retPretax" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">Roth return % <span class="text-slate-500">(type 7 = 7%)</span></label><input type="number" step="0.25" data-f="retRoth" class="num-input mt-1"></div>
             <div><label class="text-xs text-slate-400">HSA return % <span class="text-slate-500">(type 6 = 6%)</span></label><input type="number" step="0.25" data-f="retHSA" class="num-input mt-1"></div>
@@ -805,12 +805,12 @@
 
       <div class="stat-card rounded-xl p-4">
         <div class="flex flex-wrap items-center gap-3 mb-2">
-          <h3 class="text-sm font-semibold text-slate-300">🏛️ Tax Policy Shift / TCJA Sunset <span class="text-slate-500 font-normal">(2026+ scenario)</span></h3>
+          <h3 class="text-sm font-semibold text-slate-300">🏛️ Tax Policy Shift / Higher-Tax Era <span class="text-slate-500 font-normal">(hypothetical stress test)</span></h3>
           <label class="ml-auto flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-            <input type="checkbox" id="tcjaSunset" class="accent-cyan-500"> Model TCJA sunset
+            <input type="checkbox" id="tcjaSunset" class="accent-cyan-500"> Model higher-tax era
           </label>
         </div>
-        <p class="text-xs text-slate-500 mb-2">Reverts federal ordinary brackets to the pre-TCJA structure — 10% · 15% · 25% · 28% · 33% · 35% · 39.6% — and halves the standard deduction ($15,000 → $7,500). Roth-conversion ladder savings re-price instantly: filling low brackets today is worth more when tomorrow's brackets revert higher.</p>
+        <p class="text-xs text-slate-500 mb-2">Stress test: reverts federal ordinary brackets to the pre-TCJA structure — 10% · 15% · 25% · 28% · 33% · 35% · 39.6% — and halves the standard deduction. Historically this was framed as the scheduled "TCJA sunset," but the 2025 OBBBA made those rules permanent, so treat this purely as a what-if for planning resilience (e.g., a future congress letting rates lapse). Roth-conversion ladder savings re-price instantly: filling low brackets today is worth more if tomorrow's brackets revert higher.</p>
         <div id="tcjaDelta" class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs text-slate-300 leading-relaxed"></div>
       </div>
 
@@ -1465,8 +1465,8 @@ const BRACKETS = [
   { rate: 0.12, top: 48475,  name: "12%" },
   { rate: 0.22, top: 103350, name: "22%" },
   { rate: 0.24, top: 197300, name: "24%" },
-  { rate: 0.32, top: 250900, name: "32%" },
-  { rate: 0.35, top: 627050, name: "35%" },
+  { rate: 0.32, top: 250525, name: "32%" },
+  { rate: 0.35, top: 626350, mfjTop: 751600, name: "35%" },
   { rate: 0.37, top: Infinity, name: "37%" }
 ];
 // Pre-TCJA-style bracket structure restored under a TCJA sunset scenario (2026+):
@@ -1489,14 +1489,35 @@ let TAX_MODE_MFJ = false;
 function activeBrackets() {
   const base = TAX_MODE_SUNSET ? BRACKETS_SUNSET : BRACKETS;
   if (!TAX_MODE_MFJ) return base;
-  return base.map(b => ({ rate: b.rate, top: b.top === Infinity ? Infinity : b.top * 2, name: b.name }));
+  // Joint widths double per schedule — EXCEPT the 35%→37% boundary, a statutory
+  // $751,600 for MFJ (not 2 × $626,350). See Rev. Proc. 2024-40.
+  return base.map(b => ({ rate: b.rate,
+    top: b.top === Infinity ? Infinity : (b.mfjTop != null ? b.mfjTop : b.top * 2), name: b.name }));
 }
 function activeStdDeduct() {
   const base = TAX_MODE_SUNSET ? STD_DEDUCT_BASE / 2 : STD_DEDUCT_BASE;
   return TAX_MODE_MFJ ? base * 2 : base;
 }
-const STD_DEDUCT_BASE = 15000;
-const STD_DEDUCT_SENIOR = 2000; // age 65+
+const STD_DEDUCT_BASE = 15750;   // 2025, post-OBBBA (MFJ doubles to $31,500)
+const STD_DEDUCT_SENIOR = 2000;    // age 65+ (single / HoH); joint returns use $1,600 per spouse
+const STD_DEDUCT_SENIOR_MFJ = 1600;
+// OBBBA senior deduction: $6,000 per person 65+, tax years 2025–2028 only,
+// phasing out at 6% of MAGI over $75k single / $150k joint ($60 per $1,000).
+const OBBBA_SENIOR_DEDUCTION = 6000;
+const CG_FIFTEEN_TOP_MFJ = 600050; // statutory MFJ 15%→20% LTCG breakpoint (NOT 2× single)
+function cgZeroTop()    { return TAX_MODE_MFJ ? CG_ZERO_TOP * 2 : CG_ZERO_TOP; }
+function cgFifteenTop() { return TAX_MODE_MFJ ? CG_FIFTEEN_TOP_MFJ : CG_FIFTEEN_TOP; }
+function seniorDeduction(age) {
+  if (age < 65) return 0;
+  return TAX_MODE_MFJ ? STD_DEDUCT_SENIOR_MFJ * 2 : STD_DEDUCT_SENIOR;   // joint assumes both spouses 65+
+}
+function obbbaSeniorDeduction(age, magi, year) {
+  if (!Number.isFinite(year) || year < 2025 || year > 2028) return 0;
+  if (age < 65) return 0;
+  const persons = TAX_MODE_MFJ ? 2 : 1;            // joint assumes both spouses qualify
+  const start = TAX_MODE_MFJ ? 150000 : 75000;
+  return Math.max(0, persons * OBBBA_SENIOR_DEDUCTION - 0.06 * Math.max(0, (magi || 0) - start));
+}
 
 /* ---------------- 1b. HISTORICAL CRISIS ERAS (annual S&P 500 TR, 10-yr Treasury TR, CPI %) ----------------
    Simplified single-source historical series for planning-grade backtests (approx. NYU Stern /
@@ -1540,22 +1561,35 @@ const HIST_CRISES = {
   gfc: {
     label: "2007–2009 Global Financial Crisis", desc: "−37% in 2008 with flight-to-quality bond surge, then the 2009+ recovery",
     years: [
-      { e: 5.5, b: 9.8, c: 2.9 }, { e: -37.0, b: 20.1, c: 3.8 }, { e: 26.5, b: -3.5, c: -0.4 },
+      { e: 5.5, b: 9.8, c: 2.9 }, { e: -37.0, b: 20.1, c: 3.8 }, { e: 26.5, b: -11.1, c: -0.4 },
       { e: 15.1, b: 8.5, c: 1.6 }, { e: 2.1, b: 16.0, c: 3.2 }, { e: 16.0, b: 2.3, c: 2.1 },
       { e: 32.4, b: -3.3, c: 1.5 }
     ]
   }
 };
-const RMD_TABLE = { 75:14.4,76:13.7,77:13.0,78:12.4,79:11.8,80:11.2,81:10.6,82:10.0,83:9.6,84:9.2,85:8.9,86:8.6,87:8.3,88:8.0,89:7.8,90:7.6,91:7.4,92:7.2,93:7.0,94:6.8,95:6.6,96:6.4,97:6.2,98:6.0,99:5.8,100:5.6,101:5.4,102:5.2,103:5.0,104:4.8,105:4.6,106:4.4,107:4.2,108:4.0,109:3.8,110:3.6 };
+// IRS Uniform Lifetime Table (Pub 590-B, 2022 revision). Divisor lookup clamps at 120.
+const RMD_TABLE = { 72:27.4,73:26.5,74:25.5,75:24.6,76:23.7,77:22.9,78:22.0,79:21.1,80:20.2,81:19.4,82:18.5,83:17.7,84:16.8,85:16.0,86:15.2,87:14.4,88:13.7,89:12.9,90:12.2,91:11.5,92:10.8,93:10.1,94:9.5,95:8.9,96:8.4,97:7.8,98:7.3,99:6.8,100:6.4,101:6.0,102:5.6,103:5.2,104:4.9,105:4.6,106:4.3,107:4.1,108:3.9,109:3.7,110:3.5,111:3.4,112:3.3,113:3.1,114:3.0,115:2.9,116:2.8,117:2.7,118:2.5,119:2.3,120:2.0 };   // IRS Uniform Lifetime Table, 2022 final regs (Pub 590-B) — verified against IRS Bulletin 2022-05
+function rmdDivisor(age) { return RMD_TABLE[Math.min(Math.max(age, 72), 120)] || 27.4; }
+// 2025 Medicare IRMAA (single-filer MAGI thresholds per CMS fact sheet). While TAX_MODE_MFJ
+// is active, thresholds double per joint-filing law — EXCEPT the top-tier boundary, which is
+// a statutory $750k for joint filers (a fixed ACA-era value, not 2 × $500k).
+// pb = total monthly Part B premium at the tier; pd = base drug premium ($36.99) plus surcharge.
+const IRMAA_BASE_PB = 185.00, IRMAA_BASE_PD = 36.99;
 const IRMAA_TIERS = [
-  { min: 0,     max: 100000,  label: "Standard",    pb: 174.70, pd: 33.80 },
-  { min: 100000,max: 130000,  label: "Tier 1",      pb: 229.10, pd: 54.90 },
-  { min: 130000,max: 174000,  label: "Tier 2",      pb: 335.50, pd: 77.40 },
-  { min: 174000,max: 190000,  label: "Tier 3",      pb: 467.70, pd: 100.50 },
-  { min: 190000,max: 250000,  label: "Tier 4",      pb: 504.20, pd: 115.80 },
-  { min: 250000,max: 622000,  label: "Tier 5",      pb: 560.50, pd: 139.90 },
-  { min: 622000,max: Infinity,label: "Tier 6",      pb: 642.30, pd: 174.00 }
+  { min: 0,      max: 106000,  label: "Standard", pb: 185.00, pd: 36.99 },
+  { min: 106000, max: 133000,  label: "Tier 1",   pb: 259.00, pd: 50.69 },
+  { min: 133000, max: 167000,  label: "Tier 2",   pb: 370.00, pd: 72.29 },
+  { min: 167000, max: 200000,  label: "Tier 3",   pb: 480.90, pd: 93.99 },
+  { min: 200000, max: 500000,  label: "Tier 4",   pb: 591.90, pd: 115.59, mfjMax: 750000 },
+  { min: 500000, max: Infinity,label: "Tier 5",   pb: 628.90, pd: 122.79, mfjMin: 750000 }
 ];
+function irmaaThresholds() {
+  const k = TAX_MODE_MFJ ? 2 : 1;   // married filing jointly doubles every MAGI boundary…
+  return IRMAA_TIERS.map(t => ({ ...t,
+    min: (TAX_MODE_MFJ && t.mfjMin != null) ? t.mfjMin : t.min * k,   // …except the statutory top tier
+    max: (TAX_MODE_MFJ && t.mfjMax != null) ? t.mfjMax : t.max * k
+  }));
+}
 const SS_FULL_AGE = 67;
 const SS_EARLY_DISC = 0.066667;    // 5/9 of 1% per month, expressed per year (≈6.67%/yr)
 const SS_LATE_CREDIT = 0.08;       // delayed-credit 8% per year after FRA
@@ -1593,7 +1627,9 @@ function applyStatePreset(plan, key) {
     plan.stMode = p.mode;
     plan.stRate = p.rate || 0;
     plan.stDeduction = p.deduction || 0;
-    plan.stBrackets = p.brackets ? JSON.parse(JSON.stringify(p.brackets)) : null;
+    // Structured clone that PRESERVES Infinity in bracket tops (JSON.stringify would
+    // silently turn the top rate's Infinity into null and zero out the top bracket).
+    plan.stBrackets = p.brackets ? p.brackets.map(b => ({ ...b })) : null;
   }
   return plan;
 }
@@ -1602,8 +1638,9 @@ function stateTaxOf(plan, taxableInc) {
   if (plan.stMode === "prog" && Array.isArray(plan.stBrackets) && plan.stBrackets.length) {
     let tax = 0, prev = 0;
     for (const b of plan.stBrackets) {
-      if (taxableInc > prev) tax += Math.max(0, Math.min(taxableInc, b.top) - prev) * b.rate;
-      prev = b.top;
+      const top = (b.top == null || !Number.isFinite(b.top)) ? Infinity : b.top; // heal legacy JSON-cloned presets
+      if (taxableInc > prev) tax += Math.max(0, Math.min(taxableInc, top) - prev) * b.rate;
+      prev = top;
     }
     return tax;
   }
@@ -1625,7 +1662,7 @@ function vpwAnnuityFactor(rReal, years) {
 
 /* ---------------- 1c. ACA SUBSIDY / CG-HARVEST / DOWNSIZING HELPERS ---------------- */
 // 2025 Federal Poverty Level guidelines (contiguous U.S.), +$5,500 per member above 4
-const FPL_2025 = { 1: 15650, 2: 21150, 3: 26650, 4: 32150 };
+const FPL_2025 = { 1: 15650, 2: 21150, 3: 26650, 4: 32150 };   // HHS 2025 poverty guidelines (48 states), +$5,500/person
 function fplFor(hh) {
   const h = Math.max(1, Math.min(8, Math.round(hh || 1)));
   return h <= 4 ? FPL_2025[h] : FPL_2025[4] + 5500 * (h - 4);
@@ -1633,16 +1670,19 @@ function fplFor(hh) {
 // ACA "applicable percentage" — share of household income the enrollee must pay toward the
 // benchmark silver premium. Piecewise-linear interpolation of the IRS sliding scale; above
 // 400% FPL the IRA extension caps the exposure at 8.5% (no hard subsidy cliff).
+// Official 2025 Applicable Percentage structure (Rev. Proc. 2024-35): required household
+// contribution as % of income, interpolated linearly within each FPL band. 8.5% is the
+// statutory ceiling at and above 400% FPL (IRC §36B).
 const ACA_SCALE = [
-  [1.00, 0.000], [1.38, 0.020], [1.50, 0.030], [2.00, 0.041],
-  [2.50, 0.063], [3.00, 0.083], [4.00, 0.095]
+  [1.00, 0.000], [1.50, 0.000], [2.00, 0.020], [2.50, 0.040],
+  [3.00, 0.060], [4.00, 0.085]
 ];
 function acaContribPct(fplRatio) {
   if (!Number.isFinite(fplRatio)) return 0.085;
   if (fplRatio < 1.0) return 0;                               // below FPL → Medicaid territory, no PTC modeled
   for (let i = 1; i < ACA_SCALE.length; i++) {
     const [r0, p0] = ACA_SCALE[i - 1], [r1, p1] = ACA_SCALE[i];
-    if (fplRatio <= r1) return p0 + (p1 - p0) * (fplRatio - r0) / (r1 - r0);
+    if (fplRatio <= r1) return Math.min(0.085, p0 + (p1 - p0) * (fplRatio - r0) / (r1 - r0));
   }
   return 0.085;
 }
@@ -1719,14 +1759,14 @@ function defaultPlan(name) {
   return {
     name: name,
     currentAge: 45, retirementAge: 65, planEndAge: 95,
-    pensionAge: 70, pensionStart: 40000, pensionCOLA: 0.02,
-    ssClaimAge: 67, ssFRA: 3200,
-    rental: 0, salary: 160000, salaryCOLA: 0.03,
+    pensionAge: 70, pensionStart: 0, pensionCOLA: 0.02,
+    ssClaimAge: 67, ssFRA: 0,
+    rental: 0, salary: 0, salaryCOLA: 0.03,
     essential: 55000, discretionary: 25000, spendingEsc: 0.03,
     medEssential: 12000, medDiscretionary: 4000, medInflation: 0.04,
-    inflation: 0.03, savings: 20000,
+    inflation: 0.03, savings: 0,
     retTaxable: 0.07, retPretax: 0.06, retRoth: 0.07, retHSA: 0.06, retCash: 0.02,
-    cash: 15000, taxable: 150000, pretax: 350000, roth: 80000, hsa: 25000,
+    cash: 0, taxable: 0, pretax: 0, roth: 0, hsa: 0,
     rcEnabled: true, rcStartAge: 66, rcEndAge: 74,
     rcAmount: 25000, rcTopOff: true, rcBracket: 0.12,
     divYield: 0.025,
@@ -1963,47 +2003,58 @@ function flashSaveError() {
 }
 
 /* ---------------- 3. TAX MATH ---------------- */
-function federalOrdinaryTax(inc, age) {
-  const sd = activeStdDeduct() + (age >= 65 ? STD_DEDUCT_SENIOR : 0);
+function federalOrdinaryTax(inc, age, opts) {
+  const o = opts || {};
+  const sd = activeStdDeduct() + seniorDeduction(age)
+    + (o.magi != null ? obbbaSeniorDeduction(age, o.magi, o.year != null ? o.year : START_YEAR) : 0);
   const t = Math.max(0, inc - sd);
   let tax = 0, prev = 0;
   for (const b of activeBrackets()) {
-    if (t > prev) tax += Math.max(0, t - prev) * b.rate;
+    if (t > prev) tax += Math.max(0, Math.min(t, b.top) - prev) * b.rate;
     prev = b.top;
   }
   return { tax, taxable: t, sd, bracketTop: Math.min(prev, t) };
 }
 function bracketRoom(inc, age, targetRate) {
-  const sd = activeStdDeduct() + (age >= 65 ? STD_DEDUCT_SENIOR : 0);
+  const sd = activeStdDeduct() + seniorDeduction(age);
   const taxable = Math.max(0, inc - sd);
   const b = activeBrackets().find(x => x.rate === targetRate);
   if (!b) return 0;
   return Math.max(0, b.top - taxable);
 }
 function ssTaxableFraction(claimAge, ssBenefitYearly, otherInc) {
-  if (otherInc + 0.5 * ssBenefitYearly <= 25000) return 0;
-  if (otherInc + 0.5 * ssBenefitYearly >= 44000) return 0.85;
-  return 0.5;
+  // Statutory layered formula (IRC §86): up to 50% of benefits taxable as provisional
+  // income crosses the first threshold, up to 85% across the second band.
+  // Single: $25k/$34k — MFJ: $32k/$44k.
+  const b = ssBenefitYearly || 0;
+  if (b <= 0) return 0;
+  const t1 = TAX_MODE_MFJ ? 32000 : 25000;
+  const t2 = TAX_MODE_MFJ ? 44000 : 34000;
+  const pi = (otherInc || 0) + 0.5 * b;
+  if (pi <= t1) return 0;
+  if (pi <= t2) return Math.min(0.5, 0.5 * (pi - t1) / b);
+  return Math.min(0.85, (0.5 * b + 0.85 * (pi - t2)) / b);
 }
 function ltcgRate(magi) {
-  // 2025 qualified-dividend / LTCG brackets: 0% / 15% / 20% (doubled thresholds while MFJ)
-  const k = TAX_MODE_MFJ ? 2 : 1;
-  if (magi <= 23200 * k) return 0.00;
-  if (magi <= 94050 * k) return 0.15;
+  // 2025 qualified-dividend / LTCG brackets. MFJ zero-top doubles ($96,700) but the
+  // 15%→20% breakpoint is a statutory $600,050 — NOT double the single $533,400.
+  if (magi <= cgZeroTop()) return 0.00;
+  if (magi <= cgFifteenTop()) return 0.15;
   return 0.20;
 }
-function niitApplies(magi) { return magi > 200000; }
+function niitApplies(magi) { return magi > (TAX_MODE_MFJ ? 250000 : 200000); }
 function magiOf(inc, interest, taxFreeConv) {
   // MAGI ≈ ordinary + LTCG income + tax-exempt interest (none here)
   return Math.max(0, inc + interest - 0) + taxFreeConv * 0;
 }
 function irmaaaTier(magi) {
-  for (const t of IRMAA_TIERS) if (magi < t.max) return t;
-  return IRMAA_TIERS[IRMAA_TIERS.length - 1];
+  const tiers = irmaaThresholds();
+  for (const t of tiers) if (magi < t.max) return t;
+  return tiers[tiers.length - 1];
 }
 function irmaaaAnnual(magi) {
   const t = irmaaaTier(magi);
-  return (t.pb - 174.70 + t.pd - 33.80) * 12;
+  return (t.pb - IRMAA_BASE_PB + t.pd - IRMAA_BASE_PD) * 12;
 }
 
 /* ---------------- 4. SIMULATOR (deterministic + MC) ---------------- */
@@ -2024,7 +2075,14 @@ function ssMonthlyBenefit(plan, claimAge) {
   if (claimAge < 62) claimAge = 62;
   if (claimAge > 70) claimAge = 70;
   let m = plan.ssFRA;
-  if (claimAge < SS_FULL_AGE) m = plan.ssFRA * (1 - SS_EARLY_DISC * (SS_FULL_AGE - claimAge));
+  if (claimAge < SS_FULL_AGE) {
+    // Statutory two-phase reduction: 5/9 of 1% per month for the first 36 months
+    // before FRA, then 5/12 of 1% per month for additional earlier months
+    // (e.g. FRA 67 claimed at 62 → exactly 70% of PIA).
+    const months = (SS_FULL_AGE - claimAge) * 12;
+    const first36 = Math.min(months, 36), extra = months - first36;
+    m = plan.ssFRA * (1 - first36 * (5 / 900) - extra * (5 / 1200));
+  }
   if (claimAge > SS_FULL_AGE) m = plan.ssFRA * (1 + SS_LATE_CREDIT * (claimAge - SS_FULL_AGE));
   return Math.max(0, m);
 }
@@ -2057,7 +2115,7 @@ function simulatePlan(plan, opts) {
     let cumQcd = 0;  // qualified charitable distributions
     let tlhPool = 0, cumTlhH = 0, cumTlhSave = 0;   // tax-loss carryforward pool + lifetime savings
     // Final-boss engines: 72(t) SEPP · HECM LOC · HSA shoebox
-    let seppAmt = 0, seppInit = false, cumSepp = 0;
+    let seppAmt = 0, seppInit = false, seppStartEff = 0, cumSepp = 0;
     let hecmAvail = 0, hecmDebt = 0, hecmInit = false, cumHecm = 0;
     let hsbCredit = 0, cumHsbDraw = 0;
     let qlacRemaining = 0, qlacPayout = 0, cumQlacPrem = 0, cumQlacPay = 0, qlacInit = false;
@@ -2118,12 +2176,16 @@ function simulatePlan(plan, opts) {
       // shocks
       let rT = plan.retTaxable, rP = plan.retPretax, rR = plan.retRoth, rH = plan.retHSA, rC = plan.retCash;
       if (mc > 0) {
+        // One shared market shock pair per year per asset class: accounts holding the
+        // same asset class must move together (real-world cross-account equity corr ≈ +0.95).
+        // Independent per-account draws manufactured a phantom diversification bonus.
+        const zE = gauss(rng), zB = gauss(rng);
         const eT = 0.9, eP = 0.6, eR = 0.9, eH = 0.6, eC = 0.15;
-        rT = plan.retTaxable + eT * MC_SIGMA_EQUITY * gauss(rng) + (1 - eT) * MC_SIGMA_BOND * gauss(rng);
-        rP = plan.retPretax + eP * MC_SIGMA_EQUITY * gauss(rng) + (1 - eP) * MC_SIGMA_BOND * gauss(rng);
-        rR = plan.retRoth + eR * MC_SIGMA_EQUITY * gauss(rng) + (1 - eR) * MC_SIGMA_BOND * gauss(rng);
-        rH = plan.retHSA + eH * MC_SIGMA_EQUITY * gauss(rng) + (1 - eH) * MC_SIGMA_BOND * gauss(rng);
-        rC = plan.retCash + eC * MC_SIGMA_BOND * gauss(rng);
+        rT = plan.retTaxable + eT * MC_SIGMA_EQUITY * zE + (1 - eT) * MC_SIGMA_BOND * zB;
+        rP = plan.retPretax + eP * MC_SIGMA_EQUITY * zE + (1 - eP) * MC_SIGMA_BOND * zB;
+        rR = plan.retRoth + eR * MC_SIGMA_EQUITY * zE + (1 - eR) * MC_SIGMA_BOND * zB;
+        rH = plan.retHSA + eH * MC_SIGMA_EQUITY * zE + (1 - eH) * MC_SIGMA_BOND * zB;
+        rC = plan.retCash + eC * MC_SIGMA_BOND * zB;
         rT = Math.max(-0.6, Math.min(0.45, rT)); rP = Math.max(-0.6, Math.min(0.45, rP));
         rR = Math.max(-0.6, Math.min(0.45, rR)); rH = Math.max(-0.6, Math.min(0.45, rH));
         rC = Math.max(-0.25, Math.min(0.05, rC));
@@ -2160,7 +2222,10 @@ function simulatePlan(plan, opts) {
         rT = blendR(rT); rP = blendR(rP); rR = blendR(rR);
       }
       // growth (beginning-of-year, pre-withdrawal)
-      b.taxable *= (1 + rT); b.pretax *= (1 + rP); b.roth *= (1 + rR); b.hsa *= (1 + rH); b.cash *= (1 + rC);
+      // Total-return convention: the taxable sleeve appreciates at (r − dividend yield);
+      // the yield itself is paid out below as qualified-dividend income. Entering a
+      // standard TOTAL return (e.g. 7%) therefore no longer double-counts dividends.
+      b.taxable *= Math.max(0.3, 1 + rT - (plan.divYield || 0)); b.pretax *= (1 + rP); b.roth *= (1 + rR); b.hsa *= (1 + rH); b.cash *= (1 + rC);
       if (!isRet) b.pretax += plan.savings; // annual pre-tax contribution (e.g. 401k/IRA), funded from after-tax pay
       const nwBeginAll = b.cash + b.taxable + b.pretax + b.roth + b.hsa;
       const investBegin = nwBeginAll - b.hsa;   // investable portfolio for WR / VPW math (HSA reserved for medical)
@@ -2277,9 +2342,15 @@ function simulatePlan(plan, opts) {
           if (qlacRemaining > 0) {
             b.pretax -= qlacRemaining;
             cumQlacPrem += qlacRemaining;
+            // Deferred-annuity pricing: the premium compounds at the same 5% actuarial
+            // rate from purchase until payouts begin at 85, THEN annuitizes. Skipping the
+            // accumulation factor priced a 20-year-deferred QLAC like an immediate SPIA
+            // (paying ~38 cents on the fair-value dollar).
+            const accYears = Math.max(0, 85 - qBuy);
+            const qAV = qlacRemaining * Math.pow(1.05, accYears);
             const nP = Math.max(5, Number.isFinite(plan.planEndAge) ? plan.planEndAge - 84 : 11);
             const qDen = 1 - Math.pow(1.05, -nP);   // strictly > 0 for nP >= 5
-            const qPay = qDen > 0 ? qlacRemaining * 0.05 / qDen : 0;
+            const qPay = qDen > 0 ? qAV * 0.05 / qDen : 0;
             qlacPayout = Number.isFinite(qPay) && qPay > 0 ? qPay : 0;
           }
           qlacInit = true;
@@ -2295,6 +2366,7 @@ function simulatePlan(plan, opts) {
       // amount runs for 5 years or until age 59½ — whichever is LATER — penalty-free, and
       // overrides standard waterfall logic for that amount.
       if (plan.seppEnabled && age === Math.max(plan.currentAge + 1, plan.seppStartAge || 55)) {
+        seppStartEff = age;                                   // actual first-payment age (may exceed the configured start)
         const nY = Math.max(1, Number.isFinite(plan.seppLifeExp) ? (plan.seppLifeExp - age) : (85 - age));
         const rSepp = Math.min(0.12, Math.max(0.005, Number.isFinite(plan.seppRate) ? plan.seppRate : 0.05));
         const seppBal = Number.isFinite(b.pretax) ? Math.max(0, b.pretax) : 0;
@@ -2303,19 +2375,23 @@ function simulatePlan(plan, opts) {
         seppAmt = Number.isFinite(seppRaw) && seppRaw > 0 ? seppRaw : 0;
         seppInit = true;
       }
-      const seppEndAge = Math.max((plan.seppStartAge || 55) + 5, 60);
-      const seppY = (plan.seppEnabled && seppInit && age >= (plan.seppStartAge || 55) && age < seppEndAge)
+      // Program runs for the LATER of 5 years or until age 59½ — measured from the
+      // EFFECTIVE start age, not the configured one (a 62-year-old "starting" a plan
+      // designed for 55 must still receive payments).
+      const seppEndAge = Math.max(seppStartEff + 5, 60);
+      const seppY = (plan.seppEnabled && seppInit && age >= seppStartEff && age < seppEndAge)
         ? Math.min(Number.isFinite(seppAmt) ? seppAmt : 0, Number.isFinite(b.pretax) ? Math.max(0, b.pretax) : 0) : 0;
       if (seppY > 0) { b.pretax -= seppY; cumSepp += seppY; }
       // Qualified Charitable Distribution (age 70½+): pre-tax IRA → charity, excluded from
       // income and MAGI entirely. Applied BEFORE the RMD so the donation counts toward —
       // and permanently shrinks — the required distribution.
-      const qcdY = (plan.qcdEnabled && age >= 71) ? Math.min(Math.max(0, plan.qcdAmount || 0), Math.max(0, b.pretax)) : 0;
+      const qcdY = (plan.qcdEnabled && age >= 71) ? Math.min(Math.max(0, plan.qcdAmount || 0), 108000, Math.max(0, b.pretax)) : 0;   // $108k/person 2025 limit
       if (qcdY > 0) b.pretax -= qcdY;
       // RMD: taken from the post-growth pre-tax balance, before any Roth conversion.
       // QLAC principal is legally excluded from the Uniform Lifetime Table until annuitization.
       const rmdBase = Math.max(0, b.pretax - ((plan.qlacEnabled && age < 85) ? qlacRemaining : 0));
-      const rmd = age >= 75 ? rmdBase / (RMD_TABLE[age] || 6.0) : 0;
+      const rmdStartAge = (START_YEAR - age) >= 1960 ? 75 : 73;   // SECURE 2.0: 73 for born 1951–1959, 75 for born 1960+
+      const rmd = age >= rmdStartAge ? rmdBase / rmdDivisor(age) : 0;
       b.pretax -= rmd;
       // Roth conversion
       let conv = 0, convTax = 0;
@@ -2343,7 +2419,9 @@ function simulatePlan(plan, opts) {
         const dsm = dsComputeAt(plan, age);
         dsGainT = dsm.taxableGain;
         const magiDs = Math.max(0, salaryY + penYh + rentalY + annTaxable + divYieldY + rmd) + dsGainT;
-        dsTax = dsGainT * ltcgRate(magiDs) + (niitApplies(magiDs) ? dsGainT * 0.038 : 0);
+        // NIIT applies only to the lesser of NII or the MAGI excess above the threshold
+        const niiExcessDs = Math.min(dsGainT, Math.max(0, magiDs - (TAX_MODE_MFJ ? 250000 : 200000)));
+        dsTax = dsGainT * ltcgRate(magiDs) + niiExcessDs * 0.038;
         dsNet = Math.max(0, dsm.value - dsm.costs - dsTax);
         b.taxable += dsNet;
         taxBasis += dsNet;                       // sale proceeds become fully-stepped new basis
@@ -2387,6 +2465,13 @@ function simulatePlan(plan, opts) {
       let spendEff = spending, wsEv = null, wrNow = null;
       if (isRet) {
         if (!wsInit) wsInit = { rate: gapRaw > 0 ? gapRaw / Math.max(1, investBegin) : 0, nw: investBegin };
+        // GK baseline must exist by the FIRST year with a funding gap. If year-one income
+        // covered everything (anchor froze at 0), re-anchor once when gaps actually begin —
+        // otherwise the guardrails stay silently inert forever.
+        if (wsKind === "gk" && gapRaw > 0 && !wsInit.gkArmed) {
+          wsInit.gkArmed = true;
+          if (!(wsInit.rate > 0)) wsInit.rate = gapRaw / Math.max(1, investBegin);
+        }
         if (wsKind === "gk" && wsInit.rate > 0 && gapRaw > 0) {
           // Guyton-Klinger guardrails vs the initial withdrawal rate
           wrNow = gapRaw / Math.max(1, investBegin);
@@ -2560,10 +2645,10 @@ function simulatePlan(plan, opts) {
       // Room = 0% bracket top − ordinary taxable income − qualified dividends already in the
       // preferential stack − gains realized from this year's taxable withdrawals.
       if (plan.cgHarvestEnabled && b.taxable > 0) {
-        const ded = age >= 65 ? STD_DEDUCT_BASE + STD_DEDUCT_SENIOR : STD_DEDUCT_BASE;
+        const ded = activeStdDeduct() + seniorDeduction(age);
         const ordTaxable = Math.max(0, ssOtherBase + ssTaxInc - ded);
         const ltcgUsed = divYieldY + wTaxGain;
-        cgRoom = Math.max(0, CG_ZERO_TOP - ordTaxable - ltcgUsed);
+        cgRoom = Math.max(0, cgZeroTop() - ordTaxable - ltcgUsed);
         const basisRatio = b.taxable > 0 ? Math.min(1, Math.max(0, taxBasis / b.taxable)) : 0;
         const availGain = Math.max(0, b.taxable * (1 - basisRatio));
         cgH = Math.min(cgRoom, availGain);
@@ -2588,22 +2673,24 @@ function simulatePlan(plan, opts) {
       // Harvested gains (cgH) only ever consume leftover 0% room, so they land entirely in g0.
       // The downsizing gain is taxed standalone at sale time (dsTax) to avoid double counting.
       const prefIncome = Math.max(0, divYieldY + wTaxGain + cgH);
-      const dedNow = age >= 65 ? STD_DEDUCT_BASE + STD_DEDUCT_SENIOR : STD_DEDUCT_BASE;
+      // Status-aware deduction stack: standard + age-65 additional ($2,000 single /
+      // $1,600 per spouse joint) + OBBBA senior bonus (2025–2028, MAGI-phased).
+      const dedNow = activeStdDeduct() + seniorDeduction(age) + obbbaSeniorDeduction(age, magi, year);
       const ordTaxablePref = Math.max(0, ssOtherBase + ssTaxInc - dedNow);
-      const room0 = Math.max(0, CG_ZERO_TOP - ordTaxablePref);
+      const room0 = Math.max(0, cgZeroTop() - ordTaxablePref);
       const g0 = Math.min(prefIncome, room0);
-      const g15 = Math.min(prefIncome - g0, Math.max(0, CG_FIFTEEN_TOP - CG_ZERO_TOP));
+      const g15 = Math.min(prefIncome - g0, Math.max(0, cgFifteenTop() - cgZeroTop()));
       const g20 = Math.max(0, prefIncome - g0 - g15);
-      const prefTax = g15 * 0.15 + g20 * 0.20 + 0.038 * Math.min(prefIncome, Math.max(0, magi - 200000)); // + NIIT on NII above $200k MAGI
+      const prefTax = g15 * 0.15 + g20 * 0.20 + 0.038 * Math.min(prefIncome, Math.max(0, magi - (TAX_MODE_MFJ ? 250000 : 200000))); // NIIT on NII above the MAGI threshold ($200k single / $250k MFJ)
       const effPrefRate = prefIncome > 0 ? prefTax / prefIncome : 0;
       const divTax = divYieldY * effPrefRate;                       // dividend share of the stacked tax (reporting)
       let ltcgTax = prefTax + dsTax;                                // preferential stack + standalone downsizing gain tax
       const ordInc = salaryY + penYh + seppY + qlacPayY + rentalY + annTaxable + rmd + conv + wPre + refillPre + ssTaxInc + pbIncome;
-      let ordTax = federalOrdinaryTax(ordInc, age).tax;
+      let ordTax = federalOrdinaryTax(ordInc, age, { magi, year }).tax;
       // DAF bunching: itemized charitable deductions above the standard deduction cut ordinary tax
       const dafExtraDed = dafGiftYr > 0 ? Math.max(0, dafGiftYr - activeStdDeduct()) : 0;
       if (dafExtraDed > 0 && Number.isFinite(dafExtraDed)) {
-        const margDaf = Math.max(0, federalOrdinaryTax(ordInc + 1000, age).tax - federalOrdinaryTax(ordInc, age).tax);
+        const margDaf = Math.max(0, federalOrdinaryTax(ordInc + 1000, age, { magi: magi + 1000, year }).tax - federalOrdinaryTax(ordInc, age, { magi, year }).tax);
         const dafSave = Number.isFinite(margDaf) ? dafExtraDed * margDaf : 0;
         ordTax = Math.max(0, ordTax - dafSave);
         cumDafSave += dafSave;
@@ -2642,6 +2729,26 @@ function simulatePlan(plan, opts) {
       cumIrm += irm;
       magiPrevYear = magi;
       prevMagiHadSalary = salaryY > 100;   // track whether the lookback year carried working salary
+      // ---- Taxes are real outflows: settle this year's bill from the portfolio. ----
+      // Pays federal + LTCG/NIIT + conversion + state tax plus any IRMAA surcharge,
+      // cash first, then taxable → pre-tax → Roth → HSA. Without this, every balance,
+      // estate value and success rate ignored the single largest retirement expense.
+      // (Approximation: the pre-tax portion used to pay the bill is not itself re-taxed.)
+      {
+        let bill = totalTax + irm;
+        const nwBefore = b.cash + b.taxable + b.pretax + b.roth + b.hsa;
+        const payFrom = (acct) => { const p = Math.min(Math.max(0, b[acct]), bill); b[acct] -= p; bill -= p; return p; };
+        payFrom("cash");
+        payFrom("taxable"); payFrom("pretax"); payFrom("roth"); payFrom("hsa");
+        // keep the 3-Bucket engine's virtual balances in sync with the real portfolio
+        const nwAfter = b.cash + b.taxable + b.pretax + b.roth + b.hsa;
+        if (bkBal && nwBefore > 1) {
+          const k = Math.max(0, nwAfter / nwBefore);
+          bkBal.b1 *= k; bkBal.b2 *= k; bkBal.b3 *= k;
+          if (bkt1 != null) { bkt1 *= k; bkt2 *= k; bkt3 *= k; }   // this year's row already captured them
+        }
+        if (bill > 0.5) { ok = false; if (!brokeAge) brokeAge = age; }
+      }
       // shortfalls: the year's gap cannot be fully funded and assets are effectively depleted
       const nw = b.cash + b.taxable + b.pretax + b.roth + b.hsa;
       if (fundGap > 0.5 && nw < 2000) {
@@ -3120,7 +3227,8 @@ function rdbPathSim(plan, o) {
       const rNom = meanRet + blendSig * gauss(rng);
       b.taxable *= (1 + rNom); b.pretax *= (1 + rNom); b.roth *= (1 + rNom); b.hsa *= (1 + rNom); b.cash *= (1 + rNom);
       // RMD from post-growth pre-tax (age 75+)
-      const rmd = age >= 75 ? b.pretax / (RMD_TABLE[age] || 6.0) : 0;
+      const rmdStartAge = (START_YEAR - age) >= 1960 ? 75 : 73;   // SECURE 2.0: 73 for born 1951–1959, 75 for born 1960+
+      const rmd = age >= rmdStartAge ? b.pretax / rmdDivisor(age) : 0;
       b.pretax -= rmd;
       // income (nominal $)
       let income = 0;
@@ -4031,7 +4139,7 @@ function buildPrintReport() {
     "</div>" +
     '<div class="pr-h2">Top Warnings &amp; Indicators</div>' +
     (warns.length ? "<ul style=\"margin:4px 0 0 16px; padding:0; font-size:10px;\">" + warns.map(w2 => "<li style=\"margin-bottom:3px;\">" + esc(w2) + "</li>").join("") + "</ul>" : '<div class="pr-note">None.</div>') +
-    '<div class="pr-note">OpenNest Horizon Planner · deterministic + Monte Carlo engine · 2025 federal brackets, SSA life tables · preset state brackets are simplified planning estimates · this report is a planning aid, not tax or investment advice. Generated entirely offline in your browser.</div>' +
+    '<div class="pr-note">OpenNest Horizon Planner · deterministic + Monte Carlo engine · Tax basis: ' + START_YEAR + ' federal brackets, deductions, IRMAA, ACA & RMD tables (verify before relying on later-year projections) · preset state brackets are simplified planning estimates · this report is a planning aid, not tax or investment advice. Generated entirely offline in your browser.</div>' +
     "</div>";
   const pr = $("printReport");
   if (pr) pr.innerHTML = page1 + page2;
@@ -4688,8 +4796,17 @@ function downloadLedgerCsv() {
 // ---- 2D heatmap: retirement ages 55–68 × core spending −30%…+30% → MC success probability ----
 let HM_CACHE = null;   // runtime-only: { sig, ages, spends, cells, trials } — never persisted
 function hmSig(plan) {
+  // Cache signature must cover EVERY driver the grid depends on — a stale cache
+  // silently displayed outdated success cells after unrelated input changes.
   return [plan.currentAge, plan.retirementAge, plan.planEndAge, plan.essential, plan.discretionary,
-    plan.cash, plan.taxable, plan.pretax, plan.roth, plan.hsa, plan.salary, plan.retTaxable].join("|");
+    plan.cash, plan.taxable, plan.pretax, plan.roth, plan.hsa, plan.salary, plan.retTaxable,
+    plan.inflation, plan.spendingEsc, plan.retPretax, plan.retRoth, plan.retHSA, plan.retCash,
+    plan.medEssential, plan.medDiscretionary, plan.medInflation, plan.divYield,
+    plan.pensionStart, plan.pensionAge, plan.pensionCOLA, plan.ssClaimAge, plan.ssFRA,
+    plan.wsStrategy, plan.wsGkBand, plan.wsGkStep, plan.gpEnabled, plan.gpTentPct,
+    plan.hbEra, plan.wdSeq, plan.smileEnabled, plan.smileSlowGoAge, plan.smileNoGoAge, plan.smileCutPct,
+    plan.acaEnabled, plan.acaBenchmark, plan.mtgEnabled, plan.ltcEnabled, plan.rcEnabled,
+    state[state.active] === plan ? state.mcTrials : ""].join("|");
 }
 function hmSuccess(basePlan, retAge, spendPct, trials) {
   const p = Object.assign({}, basePlan, {
@@ -6138,6 +6255,14 @@ function bindData() {
 
 /* ---------------- 13. BOOT ---------------- */
 function boot() {
+  // Tax-year disclosure: badge in the header + full note on the Accounts tab. Driven by
+  // START_YEAR so a future constants update re-labels the whole app automatically.
+  const badge = $("taxYearBadge");
+  if (badge) {
+    badge.textContent = "📅 Tax rules basis: " + START_YEAR;
+    badge.title = "All brackets, deductions, IRMAA, ACA and RMD tables reflect " + START_YEAR +
+      " law (verified vs IRS Rev. Proc. 2024-40/2024-35, CMS 2025, Pub 590-B). Laws change — re-verify before relying on later-year projections.";
+  }
   bindNav();
   bindAccounts();
   bindWithdrawalStrategy();
