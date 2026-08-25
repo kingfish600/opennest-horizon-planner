@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Framework Material dark theme: no AndroidX theme dependency needed. -->
+    <style name="Theme.OpenNestHorizon" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:colorPrimaryDark">@color/status_bar_dark</item>
+        <item name="android:statusBarColor">@color/status_bar_dark</item>
+        <item name="android:navigationBarColor">@color/status_bar_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

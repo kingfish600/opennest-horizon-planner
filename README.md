@@ -102,7 +102,39 @@ Your inputs are automatically saved in the browser’s local storage.
 ## Download for Offline Use
 
 * **Desktop / Web Browser:** [Download index.html (Right-click -> Save Link As)](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/index.html)
-* **Android Device:** [Download Standalone APK (v1.0.0)](https://github.com/kingfish600/opennest-horizon-planner/releases/download/v1.0.0/opennest_horizon_planner.apk)
+* **Android Device:** [Download Standalone APK (v1.3.0)](https://github.com/kingfish600/opennest-horizon-planner/releases/download/v1.3.0/opennest_horizon_planner.apk) · or the always-current build: [opennest_horizon_planner.apk in-repo](https://raw.githubusercontent.com/kingfish600/opennest-horizon-planner/main/opennest_horizon_planner.apk)
+---
+
+## Android App (v1.3.0)
+
+A native, fully offline Android wrapper ships in this repo ([`android/`](android/)) and as a prebuilt APK above.
+
+* Loads the entire planner from bundled assets — **no INTERNET permission**, works in airplane mode
+* localStorage / DOM storage persist your plans between launches
+* Exports (JSON plan snapshots, ledger CSVs) save straight to your device **Downloads** folder
+* Import snapshots via the native file picker; Print Report opens the system print dialog with "Save as PDF"
+* Hardware-accelerated WebView for fluid Chart.js rendering; back button walks in-app history
+* Fat-finger-friendly bottom tab bar on phones
+
+Build it yourself:
+
+```
+cd android
+./gradlew assembleDebug   # requires JDK 17 + Android SDK (SDK 34)
+# → app/build/outputs/apk/debug/app-debug.apk
+```
+
+---
+
+## What's New
+
+### v1.3.0
+* Print Report now exports a real PDF via the Android system print dialog ("Save as PDF")
+* JSON plan snapshots and ledger CSV exports land in device Downloads (native bridge — no more silently swallowed downloads)
+* Snapshot import wired to the native file picker
+* Fixed horizontal side-scroll inside Accounts & Cash Flow cards on tablets (ACA grid reflow + overflow hardening)
+* ~50% taller bottom tab bar touch targets on phones
+
 ---
 
 ## Acknowledgments & Inspirations
